@@ -5,21 +5,56 @@
   <meta charset="UTF-8">
   <meta name="viewport"
         content="width=device-width, initial-scale=1.0">
+
   <title>Mi Proyecto WebAR</title>
+
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
   <style>
     body {
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 40px 20px;
-      background: #101827;
-      color: white;
+      margin: 0;
+      overflow: hidden;
     }
-    h1 { color: #65e6b5; }
   </style>
 </head>
+
 <body>
-  <h1>¡Mi proyecto WebAR funciona!</h1>
-  <p>La página está publicada correctamente.</p>
-  <p>Próximo paso: activar la cámara y el modelo 3D.</p>
+  <a-scene
+    mindar-image="imageTargetSrc: https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/card.mind;"
+    color-space="sRGB"
+    renderer="colorManagement: true, physicallyCorrectLights"
+    vr-mode-ui="enabled: false"
+    device-orientation-permission-ui="enabled: false">
+
+    <a-assets>
+      <a-asset-item
+        id="personaje"
+        src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/softmind/scene.gltf">
+      </a-asset-item>
+    </a-assets>
+
+    <a-camera
+      position="0 0 0"
+      look-controls="enabled: false">
+    </a-camera>
+
+    <a-entity mindar-image-target="targetIndex: 0">
+
+      <a-gltf-model
+        src="#personaje"
+        position="0 0 0.1"
+        rotation="0 0 0"
+        scale="0.005 0.005 0.005"
+        animation="property: position;
+                   to: 0 0.1 0.1;
+                   dur: 1000;
+                   loop: true;
+                   dir: alternate">
+      </a-gltf-model>
+
+    </a-entity>
+  </a-scene>
 </body>
 </html>
