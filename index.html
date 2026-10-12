@@ -1,59 +1,157 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
-
-  <title>Mi Proyecto WebAR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4.º Piso Hospital Fernández - WebAR</title>
 
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
   <style>
     body {
       margin: 0;
       overflow: hidden;
+      font-family: Arial, sans-serif;
+    }
+
+    #info {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.65);
+      color: white;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 14px;
+      z-index: 10;
+      text-align: center;
+      max-width: 90%;
     }
   </style>
+
+  <script>
+    let currentScale = 1;
+    let currentRotationY = 0;
+    let startDistance = 0;
+    let startScale = 1;
+    let isDragging = false;
+    let lastX = 0;
+
+    function getDistance(touch1, touch2) {
+      const dx = touch2.clientX - touch1.clientX;
+      const dy = touch2.clientY - touch1.clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    AFRAME.registerComponent('gesture-controls', {
+      init: function () {
+        const el = this.el;
+
+        window.addEventListener('touchstart', (e) => {
+          if (e.touches.length === 1) {
+            isDragging = true;
+            lastX = e.touches[0].clientX;
+          }
+
+          if (e.touches.length === 2) {
+            startDistance = getDistance(e.touches[0], e.touches[1]);
+            startScale = currentScale;
+          }
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (e) => {
+          if (e.touches.length === 1 && isDragging) {
+            const deltaX = e.touches[0].clientX - lastX;
+            lastX = e.touches[0].clientX;
+
+            currentRotationY += deltaX * 0.4;
+            el.setAttribute('rotation', `0 ${currentRotationY} 0`);
+          }
+
+          if (e.touches.length === 2) {
+            const newDistance = getDistance(e.touches[0], e.touches[1]);
+            let newScale = startScale * (newDistance / startDistance);
+
+            newScale = Math.max(0.6, Math.min(2.5, newScale));
+            currentScale = newScale;
+
+            el.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
+          }
+        }, { passive: true });
+
+        window.addEventListener('touchend', () => {
+          isDragging = false;
+        });
+      }
+    });
+  </script>
 </head>
 
 <body>
+  <div id="info">
+    Escaneá el QR, apuntá a la lámina y usá un dedo para rotar. Pinza con dos dedos para hacer zoom.
+  </div>
+
   <a-scene
     mindar-image="imageTargetSrc: ./targets.mind;"
     color-space="sRGB"
     renderer="colorManagement: true, physicallyCorrectLights"
     vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false">
+    device-orientation-permission-ui="enabled: false"
+    embedded>
 
     <a-assets>
-      <a-asset-item
-        id="personaje"
-        src="https://cdn.jsdelivr.net/gh/hiukim/mind-ar-js@1.2.5/examples/image-tracking/assets/card-example/softmind/scene.gltf">
-      </a-asset-item>
+      <img id="planta" src="./planta-4piso.png">
     </a-assets>
 
-    <a-camera
-      position="0 0 0"
-      look-controls="enabled: false">
-    </a-camera>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+
+    <a-entity light="type: ambient; intensity: 1.2"></a-entity>
+    <a-entity light="type: directional; intensity: 1" position="1 2 1"></a-entity>
 
     <a-entity mindar-image-target="targetIndex: 0">
-
-      <a-gltf-model
-        src="#personaje"
-        position="0 0 0.1"
+      <a-entity
+        id="modelo2d5"
+        gesture-controls
+        position="0 0 0"
         rotation="0 0 0"
-        scale="0.005 0.005 0.005"
-        animation="property: position;
-                   to: 0 0.1 0.1;
-                   dur: 1000;
-                   loop: true;
-                   dir: alternate">
-      </a-gltf-model>
+        scale="1 1 1">
 
+        <!-- Base -->
+        <a-box
+          position="0 0 -0.02"
+          width="1.4"
+          height="0.03"
+          depth="1"
+          color="#dddddd">
+        </a-box>
+
+        <!-- Planta como superficie -->
+        <a-plane
+          src="#planta"
+          position="0 0 0"
+          rotation="-90 0 0"
+          width="1.35"
+          height="0.95"
+          material="side: double">
+        </a-plane>
+
+        <!-- Volúmenes 2.5D de ejemplo -->
+        <a-box position="-0.32 0.07 -0.18" width="0.22" height="0.14" depth="0.18" color="#8fbcd4"></a-box>
+        <a-box position="0.02 0.05 -0.18" width="0.35" height="0.10" depth="0.18" color="#aac8d8"></a-box>
+        <a-box position="0.35 0.08 -0.18" width="0.20" height="0.16" depth="0.18" color="#8fbcd4"></a-box>
+
+        <a-box position="-0.42 0.06 0.08" width="0.16" height="0.12" depth="0.24" color="#9ec5b8"></a-box>
+        <a-box position="-0.12 0.04 0.08" width="0.24" height="0.08" depth="0.24" color="#b8d8c9"></a-box>
+        <a-box position="0.18 0.05 0.08" width="0.26" height="0.10" depth="0.24" color="#9ec5b8"></a-box>
+        <a-box position="0.48 0.07 0.08" width="0.14" height="0.14" depth="0.24" color="#89b8a7"></a-box>
+
+        <!-- Núcleo central -->
+        <a-box position="0 0.09 0" width="0.18" height="0.18" depth="0.14" color="#f0b27a"></a-box>
+
+      </a-entity>
     </a-entity>
   </a-scene>
 </body>
