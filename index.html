@@ -23,20 +23,26 @@ body {
   font-family: Arial, sans-serif;
 }
 
-/* MENSAJE INICIAL */
+/* MENSAJE SUPERIOR */
 #mensaje {
   position: fixed;
   top: max(12px, env(safe-area-inset-top));
   left: 5%;
   width: 90%;
-  padding: 12px;
+  padding: 10px 12px;
   background: rgba(12, 25, 38, 0.85);
   color: white;
   text-align: center;
   border-radius: 12px;
   font-size: 13px;
+  line-height: 1.5;
   z-index: 50;
   pointer-events: none;
+}
+
+/* Ocultar escáner tras reconocer la planta */
+body.planta-detectada .mindar-ui-scanning {
+  display: none !important;
 }
 
 /* VISOR DE LA PLANTA */
@@ -74,7 +80,7 @@ body {
   user-select: none;
 }
 
-/* CAPAS VERDES */
+/* RESALTADOS VERDES */
 #capas {
   position: absolute;
   inset: 0;
@@ -152,9 +158,9 @@ button.activo {
 
 <body>
 
-<!-- MENSAJE ANTES DEL RECONOCIMIENTO -->
+<!-- MENSAJE INICIAL -->
 <div id="mensaje">
-  Apuntá la cámara hacia la planta del hospital.
+  Escaneá la planta del 4.º piso.
 </div>
 
 <!-- PLANO INTERACTIVO -->
@@ -225,9 +231,9 @@ button.activo {
 
 </div>
 
-<!-- CAMARA Y RECONOCIMIENTO -->
+<!-- CAMARA Y ESCANER MINDAR -->
 <a-scene
-  mindar-image="imageTargetSrc: ./targets.mind; uiScanning: no;"
+  mindar-image="imageTargetSrc: ./targets.mind; uiScanning: yes;"
   color-space="sRGB"
   renderer="colorManagement: true"
   vr-mode-ui="enabled: false"
@@ -329,17 +335,19 @@ marcador.addEventListener("targetFound", () => {
 
   detectado = true;
 
+  // Mostrar planta y menú
   visor.style.display = "flex";
   panel.style.display = "block";
 
-  /* Ocultar mensaje inicial */
-  mensaje.style.display = "none";
+  // Ocultar el escáner definitivamente
+  document.body.classList.add("planta-detectada");
 
-  /* Ocultar indicador visual */
-  document.querySelectorAll(".mindar-ui-scanning")
-    .forEach(elemento => {
-      elemento.style.display = "none";
-    });
+  // Mostrar instrucciones tras detectar
+  mensaje.innerHTML = `
+    <strong>¡Planta detectada!</strong><br>
+    1 dedo: girar · 2 dedos: mover<br>
+    Pellizcá con 2 dedos para ampliar o reducir
+  `;
 
   actualizarVista();
 
@@ -397,6 +405,8 @@ document.querySelectorAll("[data-sector]")
     });
 
   });
+
+/* LIMPIAR SELECCION */
 
 document.getElementById("limpiar")
   .addEventListener("click", () => {
@@ -490,7 +500,7 @@ visor.addEventListener("touchmove", e => {
     rotY += (dedo.clientX - ultimoX) * 0.35;
     rotX -= (dedo.clientY - ultimoY) * 0.30;
 
-    /* Limite horizontal y vertical */
+    // Limite de 70 grados
     rotX = Math.max(-70, Math.min(70, rotX));
     rotY = Math.max(-70, Math.min(70, rotY));
 
@@ -500,14 +510,14 @@ visor.addEventListener("touchmove", e => {
     actualizarVista();
   }
 
-  /* DOS DEDOS: ZOOM + DESPLAZAR */
+  /* DOS DEDOS: ZOOM Y DESPLAZAMIENTO */
   if (e.touches.length === 2 &&
       modoGesto === "movimiento") {
 
     const a = e.touches[0];
     const b = e.touches[1];
 
-    /* Zoom */
+    // Zoom
     if (distanciaInicial > 0) {
 
       const nuevaDistancia = distancia(a, b);
@@ -521,7 +531,7 @@ visor.addEventListener("touchmove", e => {
       );
     }
 
-    /* Desplazamiento libre */
+    // Movimiento en todas las direcciones
     const centro = centroDedos(a, b);
 
     desplazamientoX =
