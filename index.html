@@ -1,12 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
-
-  <title>Hospital Fernández - Prueba AR</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>4.º Piso Hospital Fernández - WebAR</title>
 
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
@@ -20,41 +17,114 @@
 
     #mensaje {
       position: fixed;
-      top: 15px;
-      left: 5%;
-      width: 90%;
-      background: rgba(0,0,0,0.75);
+      top: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 92%;
+      max-width: 520px;
+      background: rgba(0, 0, 0, 0.72);
       color: white;
-      padding: 12px;
-      box-sizing: border-box;
-      text-align: center;
+      padding: 10px 14px;
       border-radius: 10px;
+      text-align: center;
+      font-size: 14px;
       z-index: 999;
     }
   </style>
 
   <script>
-    AFRAME.registerComponent('detector', {
-      init: function () {
-        const mensaje = document.querySelector('#mensaje');
+    let modelo;
+    let currentScale = 1;
+    let rotX = -18;
+    let rotY = 0;
+    let isDragging = false;
+    let lastTouchX = 0;
+    let lastTouchY = 0;
+    let startDistance = 0;
+    let startScale = 1;
 
-        this.el.addEventListener('targetFound', () => {
-          mensaje.textContent = '¡PLANTA DETECTADA!';
-        });
+    function getDistance(t1, t2) {
+      const dx = t2.clientX - t1.clientX;
+      const dy = t2.clientY - t1.clientY;
+      return Math.sqrt(dx * dx + dy * dy);
+    }
 
-        this.el.addEventListener('targetLost', () => {
-          mensaje.textContent = 'Buscando la planta...';
-        });
-      }
+    function updateTransform() {
+      if (!modelo) return;
+      modelo.setAttribute("rotation", `${rotX} ${rotY} 0`);
+      modelo.setAttribute("scale", `${currentScale} ${currentScale} ${currentScale}`);
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const mensaje = document.querySelector("#mensaje");
+
+      const target = document.querySelector("[mindar-image-target]");
+      target.addEventListener("targetFound", () => {
+        mensaje.textContent = "Planta detectada. Arrastrá para rotar y usá dos dedos para hacer zoom.";
+      });
+
+      target.addEventListener("targetLost", () => {
+        mensaje.textContent = "Buscando la planta del 4.º piso...";
+      });
+
+      modelo = document.querySelector("#modelo2d5");
+      updateTransform();
+
+      window.addEventListener("touchstart", (e) => {
+        if (e.touches.length === 1) {
+          isDragging = true;
+          lastTouchX = e.touches[0].clientX;
+          lastTouchY = e.touches[0].clientY;
+        }
+
+        if (e.touches.length === 2) {
+          isDragging = false;
+          startDistance = getDistance(e.touches[0], e.touches[1]);
+          startScale = currentScale;
+        }
+      }, { passive: true });
+
+      window.addEventListener("touchmove", (e) => {
+        if (!modelo) return;
+
+        if (e.touches.length === 1 && isDragging) {
+          const touch = e.touches[0];
+          const deltaX = touch.clientX - lastTouchX;
+          const deltaY = touch.clientY - lastTouchY;
+
+          lastTouchX = touch.clientX;
+          lastTouchY = touch.clientY;
+
+          rotY += deltaX * 0.4;
+          rotX -= deltaY * 0.2;
+
+          if (rotX < -70) rotX = -70;
+          if (rotX > 20) rotX = 20;
+
+          updateTransform();
+        }
+
+        if (e.touches.length === 2) {
+          const newDistance = getDistance(e.touches[0], e.touches[1]);
+          let newScale = startScale * (newDistance / startDistance);
+
+          if (newScale < 0.7) newScale = 0.7;
+          if (newScale > 2.2) newScale = 2.2;
+
+          currentScale = newScale;
+          updateTransform();
+        }
+      }, { passive: true });
+
+      window.addEventListener("touchend", () => {
+        isDragging = false;
+      });
     });
   </script>
 </head>
-
 <body>
 
-  <div id="mensaje">
-    Buscando la planta...
-  </div>
+  <div id="mensaje">Buscando la planta del 4.º piso...</div>
 
   <a-scene
     mindar-image="imageTargetSrc: ./targets.mind;"
@@ -63,41 +133,54 @@
     vr-mode-ui="enabled: false"
     device-orientation-permission-ui="enabled: false">
 
-    <a-camera
-      position="0 0 0"
-      look-controls="enabled: false">
-    </a-camera>
+    <a-assets>
+      <img id="planta" src="./planta-4piso.png">
+    </a-assets>
 
-    <a-entity
-      mindar-image-target="targetIndex: 0"
-      detector>
+    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
 
-      <!-- Superficie verde -->
-      <a-plane
-        position="0 0 0.01"
-        width="0.9"
-        height="0.65"
-        color="#00ff66"
-        material="opacity: 0.65; side: double">
-      </a-plane>
+    <a-entity light="type: ambient; intensity: 1.2"></a-entity>
+    <a-entity light="type: directional; intensity: 0.9" position="0 0 1"></a-entity>
 
-      <!-- Cubo rojo elevado -->
-      <a-box
-        position="0 0 0.20"
-        width="0.25"
-        height="0.25"
-        depth="0.25"
-        color="#ff3333"
-        animation="property: rotation;
-                   to: 360 360 0;
-                   dur: 5000;
-                   loop: true;
-                   easing: linear">
-      </a-box>
+    <a-entity mindar-image-target="targetIndex: 0">
+
+      <a-entity id="modelo2d5" position="0 0 0">
+
+        <!-- Base -->
+        <a-box
+          position="0 0 0.02"
+          width="0.95"
+          height="0.65"
+          depth="0.04"
+          color="#d9d9d9">
+        </a-box>
+
+        <!-- Planta sobre la base -->
+        <a-plane
+          src="#planta"
+          position="0 0 0.045"
+          width="0.90"
+          height="0.60"
+          material="transparent: true; side: double">
+        </a-plane>
+
+        <!-- Volúmenes 2.5D -->
+        <a-box position="-0.27 0.17 0.11" width="0.18" height="0.10" depth="0.12" color="#8fb7c9"></a-box>
+        <a-box position="0.00 0.17 0.09" width="0.25" height="0.10" depth="0.08" color="#a9c8d6"></a-box>
+        <a-box position="0.28 0.17 0.12" width="0.16" height="0.10" depth="0.14" color="#8fb7c9"></a-box>
+
+        <a-box position="-0.33 -0.04 0.10" width="0.12" height="0.18" depth="0.10" color="#9cc7ba"></a-box>
+        <a-box position="-0.10 -0.04 0.07" width="0.18" height="0.18" depth="0.06" color="#bddbcf"></a-box>
+        <a-box position="0.15 -0.04 0.08" width="0.20" height="0.18" depth="0.08" color="#9cc7ba"></a-box>
+        <a-box position="0.37 -0.04 0.11" width="0.10" height="0.18" depth="0.12" color="#7fb09f"></a-box>
+
+        <!-- Núcleo central -->
+        <a-box position="0.00 0.00 0.14" width="0.12" height="0.12" depth="0.18" color="#f0b27a"></a-box>
+
+      </a-entity>
 
     </a-entity>
-
   </a-scene>
+
 </body>
 </html>
-
