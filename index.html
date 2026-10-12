@@ -1,228 +1,547 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover">
 
-  <title>Hospital Fernández - Plano AR</title>
+<title>Hospital Fernández - Mapa Interactivo</title>
 
-  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
-  <style>
-    body {
-      margin: 0;
-      overflow: hidden;
-      font-family: Arial, sans-serif;
-    }
+<style>
+  * {
+    box-sizing: border-box;
+  }
 
-    #mensaje {
-      position: fixed;
-      top: 15px;
-      left: 5%;
-      width: 90%;
-      box-sizing: border-box;
-      background: rgba(0,0,0,0.75);
-      color: white;
-      padding: 12px;
-      border-radius: 12px;
-      text-align: center;
-      font-size: 14px;
-      z-index: 999;
-      pointer-events: none;
-    }
+  body {
+    margin: 0;
+    overflow: hidden;
+    background: #111;
+    font-family: Arial, sans-serif;
+  }
 
-    #reiniciar {
-      position: fixed;
-      bottom: 105px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 1000;
-      border: none;
-      border-radius: 30px;
-      background: #176b55;
-      color: white;
-      padding: 14px 22px;
-      font-size: 16px;
-      font-weight: bold;
-      box-shadow: 0 3px 12px #0005;
-      touch-action: manipulation;
-    }
+  /* Mensaje superior */
+  #mensaje {
+    position: fixed;
+    top: max(12px, env(safe-area-inset-top));
+    left: 5%;
+    width: 90%;
+    padding: 12px;
+    background: rgba(12, 25, 38, 0.85);
+    color: white;
+    text-align: center;
+    border-radius: 12px;
+    font-size: 13px;
+    z-index: 50;
+    pointer-events: none;
+  }
 
-    canvas {
-      touch-action: none;
-    }
-  </style>
+  /* Visor independiente del marcador */
+  #visor {
+    position: fixed;
+    top: 12%;
+    left: 0;
+    width: 100%;
+    height: 58%;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+    overflow: hidden;
+    touch-action: none;
+  }
 
-  <script>
-    AFRAME.registerComponent('controles-plano', {
-      init: function () {
-        const modelo = this.el;
+  /* Planta que gira y cambia de tamaño */
+  #modelo {
+    position: relative;
+    width: min(92vw, 65vh);
+    aspect-ratio: 577 / 433;
+    transform-style: preserve-3d;
+    transform-origin: center;
+    will-change: transform;
+    touch-action: none;
+  }
 
-        let escala = 1;
-        let rx = 0;
-        let ry = 0;
-        let ultimoX = 0;
-        let ultimoY = 0;
-        let distanciaInicial = 0;
-        let escalaInicial = 1;
-        let arrastrando = false;
+  #planta {
+    width: 100%;
+    height: 100%;
+    display: block;
+    pointer-events: none;
+    user-select: none;
+  }
 
-        function actualizar() {
-          modelo.setAttribute(
-            'rotation', `${rx} ${ry} 0`
-          );
-          modelo.setAttribute(
-            'scale', `${escala} ${escala} ${escala}`
-          );
-        }
+  /* Resaltados de sectores */
+  #capas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    overflow: visible;
+  }
 
-        function distancia(a, b) {
-          return Math.hypot(
-            a.clientX - b.clientX,
-            a.clientY - b.clientY
-          );
-        }
+  .resaltado {
+    fill: #00e66b;
+    fill-opacity: 0.57;
+    stroke: #008b42;
+    stroke-width: 3;
+  }
 
-        document.getElementById('reiniciar')
-          .addEventListener('click', () => {
-            escala = 1;
-            rx = 0;
-            ry = 0;
-            arrastrando = false;
-            actualizar();
-          });
+  /* Panel fijo inferior */
+  #panel {
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    padding: 12px 12px
+             max(16px, env(safe-area-inset-bottom));
+    background: rgba(13, 27, 42, 0.94);
+    border-radius: 20px 20px 0 0;
+    color: white;
+    z-index: 60;
+    display: none;
+  }
 
-        const mensaje =
-          document.getElementById('mensaje');
+  #titulo {
+    text-align: center;
+    font-weight: bold;
+    font-size: 15px;
+    margin-bottom: 10px;
+  }
 
-        const target = document.querySelector(
-          '[mindar-image-target]'
-        );
+  #sectores {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px;
+  }
 
-        target.addEventListener('targetFound', () => {
-          mensaje.textContent =
-            '4.º piso detectado. Girá con un dedo y ampliá con dos.';
-        });
+  button {
+    border: 1px solid #526777;
+    border-radius: 10px;
+    background: #26394c;
+    color: white;
+    font-size: 12px;
+    padding: 11px 7px;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
 
-        target.addEventListener('targetLost', () => {
-          mensaje.textContent =
-            'Apuntá la cámara hacia la lámina.';
-        });
+  button.activo {
+    background: #16a35c;
+    border-color: #3dff9a;
+    color: white;
+    font-weight: bold;
+  }
 
-        window.addEventListener('touchstart', e => {
-          if (e.target.closest('#reiniciar')) return;
+  #acciones {
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+  }
 
-          if (e.touches.length === 1) {
-            arrastrando = true;
-            ultimoX = e.touches[0].clientX;
-            ultimoY = e.touches[0].clientY;
-          }
-
-          if (e.touches.length === 2) {
-            arrastrando = false;
-            distanciaInicial = distancia(
-              e.touches[0], e.touches[1]
-            );
-            escalaInicial = escala;
-          }
-        }, { passive: true });
-
-        window.addEventListener('touchmove', e => {
-          if (e.target.closest('#reiniciar')) return;
-
-          if (e.cancelable) e.preventDefault();
-
-          if (e.touches.length === 1 && arrastrando) {
-            const t = e.touches[0];
-
-            ry += (t.clientX - ultimoX) * 0.4;
-            rx -= (t.clientY - ultimoY) * 0.3;
-
-            rx = Math.max(-70, Math.min(70, rx));
-
-            ultimoX = t.clientX;
-            ultimoY = t.clientY;
-            actualizar();
-          }
-
-          if (e.touches.length === 2 &&
-              distanciaInicial > 0) {
-
-            let nuevaDistancia = distancia(
-              e.touches[0], e.touches[1]
-            );
-
-            escala = escalaInicial *
-              nuevaDistancia / distanciaInicial;
-
-            escala = Math.max(
-              0.5, Math.min(3, escala)
-            );
-
-            actualizar();
-          }
-        }, { passive: false });
-
-        window.addEventListener('touchend', e => {
-          arrastrando = false;
-          if (e.touches.length < 2) {
-            distanciaInicial = 0;
-          }
-        });
-
-        actualizar();
-      }
-    });
-  </script>
+  #acciones button {
+    flex: 1;
+    background: #41536a;
+    font-size: 13px;
+  }
+</style>
 </head>
 
 <body>
 
-  <div id="mensaje">
-    Versión plana 2.0 - Apuntá hacia la lámina
+<div id="mensaje">
+  Apuntá la cámara hacia la planta del hospital.
+</div>
+
+<!-- PLANO INTERACTIVO -->
+<div id="visor">
+  <div id="modelo">
+
+    <img
+      id="planta"
+      src="./planta-4piso.png"
+      alt="Planta del cuarto piso">
+
+    <svg
+      id="capas"
+      viewBox="0 0 577 433"
+      preserveAspectRatio="none">
+    </svg>
+
+  </div>
+</div>
+
+<!-- BOTONES FIJOS -->
+<div id="panel">
+
+  <div id="titulo">
+    Hospital Fernández · 4.º Piso
   </div>
 
-  <button id="reiniciar">
-    ↺ Reiniciar posición
-  </button>
+  <div id="sectores">
+    <button data-sector="1">
+      1. Administrativa
+    </button>
 
-  <a-scene
-    mindar-image="imageTargetSrc: ./targets.mind;"
-    color-space="sRGB"
-    renderer="colorManagement: true"
-    vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false">
+    <button data-sector="2">
+      2. Obstetricia Guardia
+    </button>
 
-    <a-assets>
-      <img id="planta" src="./planta-4piso.png">
-    </a-assets>
+    <button data-sector="3">
+      3. Internación
+    </button>
 
-    <a-camera
-      position="0 0 0"
-      look-controls="enabled: false">
-    </a-camera>
+    <button data-sector="4">
+      4. Acceso Sector
+    </button>
 
-    <a-entity mindar-image-target="targetIndex: 0">
+    <button data-sector="5">
+      5. Sector 5
+    </button>
 
-      <a-entity
-        id="modelo"
-        controles-plano
-        position="0 0 0.04">
+    <button data-sector="6">
+      6. Sector 6
+    </button>
+  </div>
 
-        <a-plane
-          src="#planta"
-          width="1"
-          height="0.75"
-          material="shader: flat; side: double; transparent: true">
-        </a-plane>
+  <div id="acciones">
+    <button id="limpiar">
+      Limpiar
+    </button>
 
-      </a-entity>
+    <button id="reiniciar">
+      ↺ Reiniciar posición
+    </button>
+  </div>
 
-    </a-entity>
+</div>
 
-  </a-scene>
+<!-- CAMARA MINDAR -->
+<a-scene
+  mindar-image="imageTargetSrc: ./targets.mind;"
+  color-space="sRGB"
+  renderer="colorManagement: true"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false">
+
+  <a-camera
+    position="0 0 0"
+    look-controls="enabled: false">
+  </a-camera>
+
+  <!-- Solo se utiliza para detectar la planta -->
+  <a-entity
+    id="marcador"
+    mindar-image-target="targetIndex: 0">
+  </a-entity>
+
+</a-scene>
+
+<script>
+
+/* ==========================
+   CONFIGURACION DE SECTORES
+   Coordenadas sobre 577x433
+========================== */
+
+const sectores = {
+
+  1: [
+    { x: 261, y: 174, w: 70, h: 50 }
+  ],
+
+  2: [
+    { x: 330, y: 192, w: 84, h: 64 }
+  ],
+
+  3: [
+    { x: 119, y: 27, w: 55, h: 167 },
+    { x: 405, y: 27, w: 58, h: 167 },
+    { x: 172, y: 193, w: 94, h: 65 }
+  ],
+
+  4: [
+    { x: 92, y: 179, w: 34, h: 80 },
+    { x: 254, y: 245, w: 75, h: 35 },
+    { x: 461, y: 179, w: 30, h: 80 }
+  ],
+
+  5: [
+    { x: 119, y: 260, w: 56, h: 150 }
+  ],
+
+  6: [
+    { x: 405, y: 260, w: 59, h: 145 }
+  ]
+
+};
+
+/* ==========================
+   ELEMENTOS
+========================== */
+
+const visor = document.getElementById("visor");
+const modelo = document.getElementById("modelo");
+const panel = document.getElementById("panel");
+const capas = document.getElementById("capas");
+const mensaje = document.getElementById("mensaje");
+
+let detectado = false;
+let escala = 1;
+let rotX = 0;
+let rotY = 0;
+let rotZ = 0;
+
+let ultimoX = 0;
+let ultimoY = 0;
+let arrastrando = false;
+
+let distanciaInicial = 0;
+let escalaInicial = 1;
+
+/* ==========================
+   DETECCION UNA SOLA VEZ
+========================== */
+
+const marcador = document.getElementById("marcador");
+
+marcador.addEventListener("targetFound", () => {
+
+  if (detectado) return;
+
+  detectado = true;
+
+  visor.style.display = "flex";
+  panel.style.display = "block";
+
+  mensaje.textContent =
+    "Planta cargada. Seleccioná un sector para explorarlo.";
+
+  actualizarVista();
+
+});
+
+/*
+El visor HTML no depende de targetLost.
+Por eso permanece visible cuando la
+camara deja de reconocer el marcador.
+La camara continua funcionando detras.
+*/
+
+/* ==========================
+   RESALTAR SECTORES
+========================== */
+
+function seleccionarSector(numero) {
+
+  capas.innerHTML = "";
+
+  document.querySelectorAll("[data-sector]")
+    .forEach(boton => {
+      boton.classList.remove("activo");
+    });
+
+  const areas = sectores[numero];
+
+  if (!areas) return;
+
+  areas.forEach(area => {
+
+    const figura = document.createElementNS(
+      "http://www.w3.org/2000/svg",
+      "rect"
+    );
+
+    figura.setAttribute("x", area.x);
+    figura.setAttribute("y", area.y);
+    figura.setAttribute("width", area.w);
+    figura.setAttribute("height", area.h);
+    figura.setAttribute("rx", 12);
+    figura.setAttribute("class", "resaltado");
+
+    capas.appendChild(figura);
+
+  });
+
+  const boton = document.querySelector(
+    `[data-sector="${numero}"]`
+  );
+
+  if (boton) {
+    boton.classList.add("activo");
+  }
+}
+
+document.querySelectorAll("[data-sector]")
+  .forEach(boton => {
+
+    boton.addEventListener("click", () => {
+      seleccionarSector(boton.dataset.sector);
+    });
+
+  });
+
+document.getElementById("limpiar")
+  .addEventListener("click", () => {
+
+    capas.innerHTML = "";
+
+    document.querySelectorAll("[data-sector]")
+      .forEach(boton => {
+        boton.classList.remove("activo");
+      });
+
+  });
+
+/* ==========================
+   ROTACION Y ZOOM
+========================== */
+
+function actualizarVista() {
+
+  modelo.style.transform =
+    `perspective(850px)
+     rotateX(${rotX}deg)
+     rotateY(${rotY}deg)
+     rotateZ(${rotZ}deg)
+     scale(${escala})`;
+}
+
+function distancia(a, b) {
+
+  return Math.hypot(
+    a.clientX - b.clientX,
+    a.clientY - b.clientY
+  );
+}
+
+/* Arrastrar con un dedo */
+
+visor.addEventListener("touchstart", e => {
+
+  if (e.touches.length === 1) {
+
+    arrastrando = true;
+    ultimoX = e.touches[0].clientX;
+    ultimoY = e.touches[0].clientY;
+
+  }
+
+  if (e.touches.length === 2) {
+
+    arrastrando = false;
+
+    distanciaInicial = distancia(
+      e.touches[0],
+      e.touches[1]
+    );
+
+    escalaInicial = escala;
+  }
+
+}, { passive: true });
+
+visor.addEventListener("touchmove", e => {
+
+  if (e.cancelable) e.preventDefault();
+
+  if (e.touches.length === 1 && arrastrando) {
+
+    const dedo = e.touches[0];
+
+    rotY += (dedo.clientX - ultimoX) * 0.35;
+    rotX -= (dedo.clientY - ultimoY) * 0.30;
+
+    rotX = Math.max(-70, Math.min(70, rotX));
+
+    ultimoX = dedo.clientX;
+    ultimoY = dedo.clientY;
+
+    actualizarVista();
+  }
+
+  if (e.touches.length === 2 &&
+      distanciaInicial > 0) {
+
+    const nueva = distancia(
+      e.touches[0],
+      e.touches[1]
+    );
+
+    escala = escalaInicial *
+      nueva / distanciaInicial;
+
+    escala = Math.max(
+      0.5,
+      Math.min(3, escala)
+    );
+
+    actualizarVista();
+  }
+
+}, { passive: false });
+
+visor.addEventListener("touchend", e => {
+
+  arrastrando = false;
+
+  if (e.touches.length < 2) {
+    distanciaInicial = 0;
+  }
+
+});
+
+/* Rotacion con mouse en computadora */
+
+let mouseActivo = false;
+
+visor.addEventListener("mousedown", e => {
+  mouseActivo = true;
+  ultimoX = e.clientX;
+  ultimoY = e.clientY;
+});
+
+window.addEventListener("mouseup", () => {
+  mouseActivo = false;
+});
+
+visor.addEventListener("mousemove", e => {
+
+  if (!mouseActivo) return;
+
+  rotY += (e.clientX - ultimoX) * 0.35;
+  rotX -= (e.clientY - ultimoY) * 0.3;
+
+  rotX = Math.max(-70, Math.min(70, rotX));
+
+  ultimoX = e.clientX;
+  ultimoY = e.clientY;
+
+  actualizarVista();
+});
+
+/* ==========================
+   REINICIAR POSICION
+========================== */
+
+document.getElementById("reiniciar")
+  .addEventListener("click", () => {
+
+    escala = 1;
+    rotX = 0;
+    rotY = 0;
+    rotZ = 0;
+
+    actualizarVista();
+
+  });
+
+actualizarVista();
+
+</script>
 
 </body>
 </html>
