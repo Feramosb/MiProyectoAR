@@ -1,9 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>4.º Piso Hospital Fernández - WebAR</title>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Hospital Fernández - 4.º Piso AR</title>
 
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
@@ -13,118 +16,181 @@
       margin: 0;
       overflow: hidden;
       font-family: Arial, sans-serif;
+      touch-action: none;
     }
 
     #mensaje {
       position: fixed;
-      top: 12px;
+      top: 15px;
       left: 50%;
       transform: translateX(-50%);
-      width: 92%;
-      max-width: 520px;
-      background: rgba(0, 0, 0, 0.72);
+      width: 90%;
+      max-width: 500px;
+      padding: 12px;
+      background: rgba(0, 0, 0, 0.75);
       color: white;
-      padding: 10px 14px;
-      border-radius: 10px;
+      border-radius: 12px;
       text-align: center;
       font-size: 14px;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    #reiniciar {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 12px 20px;
+      border: none;
+      background: #202b3a;
+      color: white;
+      border-radius: 12px;
+      font-size: 15px;
+      font-weight: bold;
       z-index: 999;
     }
   </style>
 
   <script>
-    let modelo;
-    let currentScale = 1;
-    let rotX = -18;
+    let modelo = null;
+    let escala = 1;
+    let rotX = -35;
     let rotY = 0;
-    let isDragging = false;
-    let lastTouchX = 0;
-    let lastTouchY = 0;
-    let startDistance = 0;
-    let startScale = 1;
 
-    function getDistance(t1, t2) {
+    let arrastrando = false;
+    let ultimoX = 0;
+    let ultimoY = 0;
+
+    let distanciaInicial = 0;
+    let escalaInicial = 1;
+
+    function distancia(t1, t2) {
       const dx = t2.clientX - t1.clientX;
       const dy = t2.clientY - t1.clientY;
       return Math.sqrt(dx * dx + dy * dy);
     }
 
-    function updateTransform() {
+    function actualizarModelo() {
       if (!modelo) return;
-      modelo.setAttribute("rotation", `${rotX} ${rotY} 0`);
-      modelo.setAttribute("scale", `${currentScale} ${currentScale} ${currentScale}`);
+
+      modelo.setAttribute(
+        "rotation",
+        `${rotX} ${rotY} 0`
+      );
+
+      modelo.setAttribute(
+        "scale",
+        `${escala} ${escala} ${escala}`
+      );
+    }
+
+    function reiniciarVista() {
+      escala = 1;
+      rotX = -35;
+      rotY = 0;
+      actualizarModelo();
     }
 
     window.addEventListener("DOMContentLoaded", () => {
       const mensaje = document.querySelector("#mensaje");
+      const target = document.querySelector(
+        "[mindar-image-target]"
+      );
 
-      const target = document.querySelector("[mindar-image-target]");
+      modelo = document.querySelector("#modelo2d5");
+
       target.addEventListener("targetFound", () => {
-        mensaje.textContent = "Planta detectada. Arrastrá para rotar y usá dos dedos para hacer zoom.";
+        mensaje.textContent =
+          "4.º Piso detectado. Arrastrá para rotar y usá dos dedos para ampliar.";
       });
 
       target.addEventListener("targetLost", () => {
-        mensaje.textContent = "Buscando la planta del 4.º piso...";
+        mensaje.textContent =
+          "Apuntá la cámara hacia la planta del hospital.";
       });
 
-      modelo = document.querySelector("#modelo2d5");
-      updateTransform();
+      document.querySelector("#reiniciar")
+        .addEventListener("click", reiniciarVista);
+
+      actualizarModelo();
 
       window.addEventListener("touchstart", (e) => {
+        if (e.target.closest("#reiniciar")) return;
+
         if (e.touches.length === 1) {
-          isDragging = true;
-          lastTouchX = e.touches[0].clientX;
-          lastTouchY = e.touches[0].clientY;
+          arrastrando = true;
+          ultimoX = e.touches[0].clientX;
+          ultimoY = e.touches[0].clientY;
         }
 
         if (e.touches.length === 2) {
-          isDragging = false;
-          startDistance = getDistance(e.touches[0], e.touches[1]);
-          startScale = currentScale;
+          arrastrando = false;
+          distanciaInicial = distancia(
+            e.touches[0],
+            e.touches[1]
+          );
+          escalaInicial = escala;
         }
       }, { passive: true });
 
       window.addEventListener("touchmove", (e) => {
+        if (e.cancelable) e.preventDefault();
         if (!modelo) return;
 
-        if (e.touches.length === 1 && isDragging) {
+        if (e.touches.length === 1 && arrastrando) {
           const touch = e.touches[0];
-          const deltaX = touch.clientX - lastTouchX;
-          const deltaY = touch.clientY - lastTouchY;
 
-          lastTouchX = touch.clientX;
-          lastTouchY = touch.clientY;
+          const dx = touch.clientX - ultimoX;
+          const dy = touch.clientY - ultimoY;
 
-          rotY += deltaX * 0.4;
-          rotX -= deltaY * 0.2;
+          ultimoX = touch.clientX;
+          ultimoY = touch.clientY;
 
-          if (rotX < -70) rotX = -70;
-          if (rotX > 20) rotX = 20;
+          rotY += dx * 0.4;
+          rotX -= dy * 0.25;
 
-          updateTransform();
+          rotX = Math.max(-75, Math.min(20, rotX));
+
+          actualizarModelo();
         }
 
-        if (e.touches.length === 2) {
-          const newDistance = getDistance(e.touches[0], e.touches[1]);
-          let newScale = startScale * (newDistance / startDistance);
+        if (e.touches.length === 2 &&
+            distanciaInicial > 0) {
 
-          if (newScale < 0.7) newScale = 0.7;
-          if (newScale > 2.2) newScale = 2.2;
+          const nuevaDistancia = distancia(
+            e.touches[0],
+            e.touches[1]
+          );
 
-          currentScale = newScale;
-          updateTransform();
+          escala = escalaInicial *
+            (nuevaDistancia / distanciaInicial);
+
+          escala = Math.max(0.6, Math.min(2.5, escala));
+
+          actualizarModelo();
         }
-      }, { passive: true });
+      }, { passive: false });
 
-      window.addEventListener("touchend", () => {
-        isDragging = false;
+      window.addEventListener("touchend", (e) => {
+        arrastrando = false;
+        if (e.touches.length < 2) {
+          distanciaInicial = 0;
+        }
       });
     });
   </script>
 </head>
+
 <body>
 
-  <div id="mensaje">Buscando la planta del 4.º piso...</div>
+  <div id="mensaje">
+    Apuntá la cámara hacia la planta del hospital.
+  </div>
+
+  <button id="reiniciar">
+    Reiniciar vista
+  </button>
 
   <a-scene
     mindar-image="imageTargetSrc: ./targets.mind;"
@@ -137,50 +203,209 @@
       <img id="planta" src="./planta-4piso.png">
     </a-assets>
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-camera
+      position="0 0 0"
+      look-controls="enabled: false">
+    </a-camera>
 
-    <a-entity light="type: ambient; intensity: 1.2"></a-entity>
-    <a-entity light="type: directional; intensity: 0.9" position="0 0 1"></a-entity>
+    <a-entity
+      light="type: ambient; intensity: 1.2">
+    </a-entity>
+
+    <a-entity
+      light="type: directional; intensity: 0.8"
+      position="0 0 1">
+    </a-entity>
 
     <a-entity mindar-image-target="targetIndex: 0">
 
-      <a-entity id="modelo2d5" position="0 0 0">
+      <a-entity id="modelo2d5">
 
-        <!-- Base -->
+        <!-- BASE DE LA MAQUETA -->
         <a-box
-          position="0 0 0.15"
-          width="0.12"
-          height="0.12"
-          depth="0.26"
-          material="color: #f0b27a;
-                  transparent: true;
-                  opacity: 0.7">
+          position="0 0 0.015"
+          width="0.96"
+          height="0.68"
+          depth="0.025"
+          color="#dddddd">
         </a-box>
 
-        <!-- Planta sobre la base -->
+        <!-- IMAGEN DE LA PLANTA -->
         <a-plane
           src="#planta"
-          position="0 0 0.045"
-          width="0.90"
-          height="0.60"
-          material="transparent: true; side: double">
+          position="0 0 0.031"
+          width="0.94"
+          height="0.665"
+          material="side: double; shader: flat">
         </a-plane>
 
-        <!-- Volúmenes 2.5D -->
-        <a-box position="-0.27 0.17 0.11" width="0.18" height="0.10" depth="0.12" color="#8fb7c9"></a-box>
-        <a-box position="0.00 0.17 0.09" width="0.25" height="0.10" depth="0.08" color="#a9c8d6"></a-box>
-        <a-box position="0.28 0.17 0.12" width="0.16" height="0.10" depth="0.14" color="#8fb7c9"></a-box>
+        <!-- MUROS ARQUITECTONICOS -->
+        <a-entity id="muros">
 
-        <a-box position="-0.33 -0.04 0.10" width="0.12" height="0.18" depth="0.10" color="#9cc7ba"></a-box>
-        <a-box position="-0.10 -0.04 0.07" width="0.18" height="0.18" depth="0.06" color="#bddbcf"></a-box>
-        <a-box position="0.15 -0.04 0.08" width="0.20" height="0.18" depth="0.08" color="#9cc7ba"></a-box>
-        <a-box position="0.37 -0.04 0.11" width="0.10" height="0.18" depth="0.12" color="#7fb09f"></a-box>
+          <!-- EJE HORIZONTAL CENTRAL -->
+          <a-box
+            position="0 0.02 0.08"
+            width="0.62"
+            height="0.015"
+            depth="0.10"
+            color="#333333">
+          </a-box>
 
-        <!-- Núcleo central -->
-        <a-box position="0.00 0.00 0.14" width="0.12" height="0.12" depth="0.18" color="#f0b27a"></a-box>
+          <!-- ALA IZQUIERDA SUPERIOR -->
+          <a-box
+            position="-0.25 0.20 0.08"
+            width="0.012"
+            height="0.22"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <a-box
+            position="-0.32 0.20 0.08"
+            width="0.012"
+            height="0.22"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <!-- ALA IZQUIERDA INFERIOR -->
+          <a-box
+            position="-0.25 -0.18 0.08"
+            width="0.012"
+            height="0.24"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <a-box
+            position="-0.32 -0.18 0.08"
+            width="0.012"
+            height="0.24"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <!-- ALA DERECHA SUPERIOR -->
+          <a-box
+            position="0.25 0.20 0.08"
+            width="0.012"
+            height="0.22"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <a-box
+            position="0.32 0.20 0.08"
+            width="0.012"
+            height="0.22"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <!-- ALA DERECHA INFERIOR -->
+          <a-box
+            position="0.25 -0.18 0.08"
+            width="0.012"
+            height="0.24"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <a-box
+            position="0.32 -0.18 0.08"
+            width="0.012"
+            height="0.24"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <!-- MUROS DE HABITACIONES CENTRALES -->
+          <a-box
+            position="-0.16 0.11 0.08"
+            width="0.012"
+            height="0.12"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <a-box
+            position="-0.08 0.11 0.08"
+            width="0.012"
+            height="0.12"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <a-box
+            position="0.08 0.11 0.08"
+            width="0.012"
+            height="0.12"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <a-box
+            position="0.16 0.11 0.08"
+            width="0.012"
+            height="0.12"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <!-- MUROS INFERIORES -->
+          <a-box
+            position="-0.16 -0.10 0.08"
+            width="0.012"
+            height="0.12"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <a-box
+            position="-0.08 -0.10 0.08"
+            width="0.012"
+            height="0.12"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <a-box
+            position="0.08 -0.10 0.08"
+            width="0.012"
+            height="0.12"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <a-box
+            position="0.16 -0.10 0.08"
+            width="0.012"
+            height="0.12"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <!-- SECTOR SUPERIOR CENTRAL -->
+          <a-box
+            position="0 0.28 0.08"
+            width="0.24"
+            height="0.012"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+          <!-- SECTOR INFERIOR CENTRAL -->
+          <a-box
+            position="0 -0.27 0.08"
+            width="0.24"
+            height="0.012"
+            depth="0.10"
+            color="#333333">
+          </a-box>
+
+        </a-entity>
 
       </a-entity>
-
     </a-entity>
   </a-scene>
 
