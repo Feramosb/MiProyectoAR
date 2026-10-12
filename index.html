@@ -4,154 +4,155 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport"
-      content="width=device-width,initial-scale=1,viewport-fit=cover">
+      content="width=device-width, initial-scale=1, viewport-fit=cover">
 
-<title>Hospital Fernández - Mapa Interactivo</title>
+<title>Hospital Fernández - Mapa Interactivo AR</title>
 
 <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
 <style>
-  * {
-    box-sizing: border-box;
-  }
+* {
+  box-sizing: border-box;
+}
 
-  body {
-    margin: 0;
-    overflow: hidden;
-    background: #111;
-    font-family: Arial, sans-serif;
-  }
+body {
+  margin: 0;
+  overflow: hidden;
+  background: #111;
+  font-family: Arial, sans-serif;
+}
 
-  /* Mensaje superior */
-  #mensaje {
-    position: fixed;
-    top: max(12px, env(safe-area-inset-top));
-    left: 5%;
-    width: 90%;
-    padding: 12px;
-    background: rgba(12, 25, 38, 0.85);
-    color: white;
-    text-align: center;
-    border-radius: 12px;
-    font-size: 13px;
-    z-index: 50;
-    pointer-events: none;
-  }
+/* MENSAJE INICIAL */
+#mensaje {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: 5%;
+  width: 90%;
+  padding: 12px;
+  background: rgba(12, 25, 38, 0.85);
+  color: white;
+  text-align: center;
+  border-radius: 12px;
+  font-size: 13px;
+  z-index: 50;
+  pointer-events: none;
+}
 
-  /* Visor independiente del marcador */
-  #visor {
-    position: fixed;
-    top: 12%;
-    left: 0;
-    width: 100%;
-    height: 58%;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 20;
-    overflow: hidden;
-    touch-action: none;
-  }
+/* VISOR DE LA PLANTA */
+#visor {
+  position: fixed;
+  top: 12%;
+  left: 0;
+  width: 100%;
+  height: 58%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  overflow: hidden;
+  touch-action: none;
+}
 
-  /* Planta que gira y cambia de tamaño */
-  #modelo {
-    position: relative;
-    width: min(92vw, 65vh);
-    aspect-ratio: 577 / 433;
-    transform-style: preserve-3d;
-    transform-origin: center;
-    will-change: transform;
-    touch-action: none;
-  }
+/* MODELO INTERACTIVO */
+#modelo {
+  position: relative;
+  width: min(92vw, 65vh);
+  aspect-ratio: 577 / 433;
+  transform-style: preserve-3d;
+  transform-origin: center;
+  will-change: transform;
+  touch-action: none;
+}
 
-  #planta {
-    width: 100%;
-    height: 100%;
-    display: block;
-    pointer-events: none;
-    user-select: none;
-  }
+/* IMAGEN TRANSPARENTE */
+#planta {
+  width: 100%;
+  height: 100%;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
 
-  /* Resaltados de sectores */
-  #capas {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    overflow: visible;
-  }
+/* CAPAS VERDES */
+#capas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
 
-  .resaltado {
-    fill: #00e66b;
-    fill-opacity: 0.57;
-    stroke: #008b42;
-    stroke-width: 3;
-  }
+.resaltado {
+  fill: #00e66b;
+  fill-opacity: 0.57;
+  stroke: #008b42;
+  stroke-width: 3;
+}
 
-  /* Panel fijo inferior */
-  #panel {
-    position: fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    padding: 12px 12px
-             max(16px, env(safe-area-inset-bottom));
-    background: rgba(13, 27, 42, 0.94);
-    border-radius: 20px 20px 0 0;
-    color: white;
-    z-index: 60;
-    display: none;
-  }
+/* MENU INFERIOR */
+#panel {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  padding: 12px 12px
+           max(16px, env(safe-area-inset-bottom));
+  background: rgba(13, 27, 42, 0.94);
+  border-radius: 20px 20px 0 0;
+  color: white;
+  z-index: 60;
+  display: none;
+}
 
-  #titulo {
-    text-align: center;
-    font-weight: bold;
-    font-size: 15px;
-    margin-bottom: 10px;
-  }
+#titulo {
+  text-align: center;
+  font-weight: bold;
+  font-size: 15px;
+  margin-bottom: 10px;
+}
 
-  #sectores {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 7px;
-  }
+#sectores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
 
-  button {
-    border: 1px solid #526777;
-    border-radius: 10px;
-    background: #26394c;
-    color: white;
-    font-size: 12px;
-    padding: 11px 7px;
-    cursor: pointer;
-    touch-action: manipulation;
-  }
+button {
+  border: 1px solid #526777;
+  border-radius: 10px;
+  background: #26394c;
+  color: white;
+  font-size: 12px;
+  padding: 11px 7px;
+  cursor: pointer;
+  touch-action: manipulation;
+}
 
-  button.activo {
-    background: #16a35c;
-    border-color: #3dff9a;
-    color: white;
-    font-weight: bold;
-  }
+button.activo {
+  background: #16a35c;
+  border-color: #3dff9a;
+  font-weight: bold;
+}
 
-  #acciones {
-    display: flex;
-    gap: 8px;
-    margin-top: 10px;
-  }
+#acciones {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
 
-  #acciones button {
-    flex: 1;
-    background: #41536a;
-    font-size: 13px;
-  }
+#acciones button {
+  flex: 1;
+  background: #41536a;
+  font-size: 13px;
+}
 </style>
 </head>
 
 <body>
 
+<!-- MENSAJE ANTES DEL RECONOCIMIENTO -->
 <div id="mensaje">
   Apuntá la cámara hacia la planta del hospital.
 </div>
@@ -163,7 +164,8 @@
     <img
       id="planta"
       src="./planta-4piso.png"
-      alt="Planta del cuarto piso">
+      alt="Planta del cuarto piso"
+      draggable="false">
 
     <svg
       id="capas"
@@ -174,7 +176,7 @@
   </div>
 </div>
 
-<!-- BOTONES FIJOS -->
+<!-- MENU DE SECTORES -->
 <div id="panel">
 
   <div id="titulo">
@@ -182,6 +184,7 @@
   </div>
 
   <div id="sectores">
+
     <button data-sector="1">
       1. Administrativa
     </button>
@@ -205,9 +208,11 @@
     <button data-sector="6">
       6. Sector 6
     </button>
+
   </div>
 
   <div id="acciones">
+
     <button id="limpiar">
       Limpiar
     </button>
@@ -215,13 +220,14 @@
     <button id="reiniciar">
       ↺ Reiniciar posición
     </button>
+
   </div>
 
 </div>
 
-<!-- CAMARA MINDAR -->
+<!-- CAMARA Y RECONOCIMIENTO -->
 <a-scene
-  mindar-image="imageTargetSrc: ./targets.mind;"
+  mindar-image="imageTargetSrc: ./targets.mind; uiScanning: no;"
   color-space="sRGB"
   renderer="colorManagement: true"
   vr-mode-ui="enabled: false"
@@ -232,7 +238,6 @@
     look-controls="enabled: false">
   </a-camera>
 
-  <!-- Solo se utiliza para detectar la planta -->
   <a-entity
     id="marcador"
     mindar-image-target="targetIndex: 0">
@@ -242,10 +247,10 @@
 
 <script>
 
-/* ==========================
-   CONFIGURACION DE SECTORES
-   Coordenadas sobre 577x433
-========================== */
+/* =================================
+   SECTORES DE LA PLANTA
+   Coordenadas sobre 577 x 433
+================================= */
 
 const sectores = {
 
@@ -279,34 +284,44 @@ const sectores = {
 
 };
 
-/* ==========================
+/* =================================
    ELEMENTOS
-========================== */
+================================= */
 
 const visor = document.getElementById("visor");
 const modelo = document.getElementById("modelo");
 const panel = document.getElementById("panel");
 const capas = document.getElementById("capas");
 const mensaje = document.getElementById("mensaje");
+const marcador = document.getElementById("marcador");
 
 let detectado = false;
+
+/* Estado de transformacion */
 let escala = 1;
 let rotX = 0;
 let rotY = 0;
 let rotZ = 0;
 
+let desplazamientoX = 0;
+let desplazamientoY = 0;
+
+/* Estado de gestos */
+let modoGesto = "";
 let ultimoX = 0;
 let ultimoY = 0;
-let arrastrando = false;
 
 let distanciaInicial = 0;
 let escalaInicial = 1;
 
-/* ==========================
-   DETECCION UNA SOLA VEZ
-========================== */
+let centroInicialX = 0;
+let centroInicialY = 0;
+let desplazamientoInicialX = 0;
+let desplazamientoInicialY = 0;
 
-const marcador = document.getElementById("marcador");
+/* =================================
+   DETECCION UNA SOLA VEZ
+================================= */
 
 marcador.addEventListener("targetFound", () => {
 
@@ -317,23 +332,22 @@ marcador.addEventListener("targetFound", () => {
   visor.style.display = "flex";
   panel.style.display = "block";
 
-  mensaje.textContent =
-    "Planta cargada. Seleccioná un sector para explorarlo.";
+  /* Ocultar mensaje inicial */
+  mensaje.style.display = "none";
+
+  /* Ocultar indicador visual */
+  document.querySelectorAll(".mindar-ui-scanning")
+    .forEach(elemento => {
+      elemento.style.display = "none";
+    });
 
   actualizarVista();
 
 });
 
-/*
-El visor HTML no depende de targetLost.
-Por eso permanece visible cuando la
-camara deja de reconocer el marcador.
-La camara continua funcionando detras.
-*/
-
-/* ==========================
-   RESALTAR SECTORES
-========================== */
+/* =================================
+   RESALTADO DE SECTORES
+================================= */
 
 function seleccionarSector(numero) {
 
@@ -396,66 +410,89 @@ document.getElementById("limpiar")
 
   });
 
-/* ==========================
-   ROTACION Y ZOOM
-========================== */
+/* =================================
+   ROTACION, ZOOM Y MOVIMIENTO
+================================= */
 
 function actualizarVista() {
 
-  modelo.style.transform =
-    `perspective(850px)
-     rotateX(${rotX}deg)
-     rotateY(${rotY}deg)
-     rotateZ(${rotZ}deg)
-     scale(${escala})`;
+  modelo.style.transform = `
+    translate(${desplazamientoX}px, ${desplazamientoY}px)
+    perspective(850px)
+    rotateX(${rotX}deg)
+    rotateY(${rotY}deg)
+    rotateZ(${rotZ}deg)
+    scale(${escala})
+  `;
 }
 
 function distancia(a, b) {
-
   return Math.hypot(
     a.clientX - b.clientX,
     a.clientY - b.clientY
   );
 }
 
-/* Arrastrar con un dedo */
+function centroDedos(a, b) {
+  return {
+    x: (a.clientX + b.clientX) / 2,
+    y: (a.clientY + b.clientY) / 2
+  };
+}
+
+/* INICIO DE GESTOS */
 
 visor.addEventListener("touchstart", e => {
 
   if (e.touches.length === 1) {
 
-    arrastrando = true;
+    modoGesto = "rotacion";
+
     ultimoX = e.touches[0].clientX;
     ultimoY = e.touches[0].clientY;
-
   }
 
   if (e.touches.length === 2) {
 
-    arrastrando = false;
+    modoGesto = "movimiento";
 
-    distanciaInicial = distancia(
-      e.touches[0],
-      e.touches[1]
-    );
+    const a = e.touches[0];
+    const b = e.touches[1];
 
+    distanciaInicial = distancia(a, b);
     escalaInicial = escala;
+
+    const centro = centroDedos(a, b);
+
+    centroInicialX = centro.x;
+    centroInicialY = centro.y;
+
+    desplazamientoInicialX = desplazamientoX;
+    desplazamientoInicialY = desplazamientoY;
   }
 
 }, { passive: true });
 
+/* MOVIMIENTO DE DEDOS */
+
 visor.addEventListener("touchmove", e => {
 
-  if (e.cancelable) e.preventDefault();
+  if (e.cancelable) {
+    e.preventDefault();
+  }
 
-  if (e.touches.length === 1 && arrastrando) {
+  /* UN DEDO: ROTAR */
+  if (e.touches.length === 1 &&
+      modoGesto === "rotacion") {
 
     const dedo = e.touches[0];
 
     rotY += (dedo.clientX - ultimoX) * 0.35;
     rotX -= (dedo.clientY - ultimoY) * 0.30;
 
+    /* Limite horizontal y vertical */
     rotX = Math.max(-70, Math.min(70, rotX));
+    rotY = Math.max(-70, Math.min(70, rotY));
 
     ultimoX = dedo.clientX;
     ultimoY = dedo.clientY;
@@ -463,38 +500,85 @@ visor.addEventListener("touchmove", e => {
     actualizarVista();
   }
 
+  /* DOS DEDOS: ZOOM + DESPLAZAR */
   if (e.touches.length === 2 &&
-      distanciaInicial > 0) {
+      modoGesto === "movimiento") {
 
-    const nueva = distancia(
-      e.touches[0],
-      e.touches[1]
-    );
+    const a = e.touches[0];
+    const b = e.touches[1];
 
-    escala = escalaInicial *
-      nueva / distanciaInicial;
+    /* Zoom */
+    if (distanciaInicial > 0) {
 
-    escala = Math.max(
-      0.5,
-      Math.min(3, escala)
-    );
+      const nuevaDistancia = distancia(a, b);
+
+      escala = escalaInicial *
+        (nuevaDistancia / distanciaInicial);
+
+      escala = Math.max(
+        0.5,
+        Math.min(3, escala)
+      );
+    }
+
+    /* Desplazamiento libre */
+    const centro = centroDedos(a, b);
+
+    desplazamientoX =
+      desplazamientoInicialX +
+      centro.x - centroInicialX;
+
+    desplazamientoY =
+      desplazamientoInicialY +
+      centro.y - centroInicialY;
 
     actualizarVista();
   }
 
 }, { passive: false });
 
+/* FINALIZAR GESTO */
+
 visor.addEventListener("touchend", e => {
 
-  arrastrando = false;
+  if (e.touches.length === 0) {
+    modoGesto = "";
+  }
 
-  if (e.touches.length < 2) {
-    distanciaInicial = 0;
+  if (e.touches.length === 1) {
+    modoGesto = "rotacion";
+
+    ultimoX = e.touches[0].clientX;
+    ultimoY = e.touches[0].clientY;
+  }
+
+  if (e.touches.length === 2) {
+    modoGesto = "movimiento";
+
+    const a = e.touches[0];
+    const b = e.touches[1];
+
+    const centro = centroDedos(a, b);
+
+    distanciaInicial = distancia(a, b);
+    escalaInicial = escala;
+
+    centroInicialX = centro.x;
+    centroInicialY = centro.y;
+
+    desplazamientoInicialX = desplazamientoX;
+    desplazamientoInicialY = desplazamientoY;
   }
 
 });
 
-/* Rotacion con mouse en computadora */
+visor.addEventListener("touchcancel", () => {
+  modoGesto = "";
+});
+
+/* =================================
+   CONTROLES DE MOUSE
+================================= */
 
 let mouseActivo = false;
 
@@ -513,9 +597,10 @@ visor.addEventListener("mousemove", e => {
   if (!mouseActivo) return;
 
   rotY += (e.clientX - ultimoX) * 0.35;
-  rotX -= (e.clientY - ultimoY) * 0.3;
+  rotX -= (e.clientY - ultimoY) * 0.30;
 
   rotX = Math.max(-70, Math.min(70, rotX));
+  rotY = Math.max(-70, Math.min(70, rotY));
 
   ultimoX = e.clientX;
   ultimoY = e.clientY;
@@ -523,17 +608,24 @@ visor.addEventListener("mousemove", e => {
   actualizarVista();
 });
 
-/* ==========================
+/* =================================
    REINICIAR POSICION
-========================== */
+================================= */
 
 document.getElementById("reiniciar")
   .addEventListener("click", () => {
 
     escala = 1;
+
     rotX = 0;
     rotY = 0;
     rotZ = 0;
+
+    desplazamientoX = 0;
+    desplazamientoY = 0;
+
+    modoGesto = "";
+    mouseActivo = false;
 
     actualizarVista();
 
