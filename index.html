@@ -1,12 +1,11 @@
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport"
-        content="width=device-width, initial-scale=1.0">
+    content="width=device-width, initial-scale=1.0">
 
-  <title>Hospital Fernández - 4.º Piso</title>
+  <title>Hospital Fernández - Plano AR</title>
 
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
@@ -21,14 +20,12 @@
     #mensaje {
       position: fixed;
       top: 15px;
-      left: 50%;
-      transform: translateX(-50%);
+      left: 5%;
       width: 90%;
-      max-width: 500px;
-      padding: 12px;
       box-sizing: border-box;
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(0,0,0,0.75);
       color: white;
+      padding: 12px;
       border-radius: 12px;
       text-align: center;
       font-size: 14px;
@@ -38,16 +35,18 @@
 
     #reiniciar {
       position: fixed;
-      bottom: 30px;
+      bottom: 105px;
       left: 50%;
       transform: translateX(-50%);
-      padding: 12px 20px;
-      background: #202b3a;
-      color: white;
+      z-index: 1000;
       border: none;
-      border-radius: 12px;
-      font-size: 15px;
-      z-index: 999;
+      border-radius: 30px;
+      background: #176b55;
+      color: white;
+      padding: 14px 22px;
+      font-size: 16px;
+      font-weight: bold;
+      box-shadow: 0 3px 12px #0005;
       touch-action: manipulation;
     }
 
@@ -57,18 +56,27 @@
   </style>
 
   <script>
-    AFRAME.registerComponent("plano-interactivo", {
+    AFRAME.registerComponent('controles-plano', {
       init: function () {
-        const el = this.el;
+        const modelo = this.el;
 
         let escala = 1;
-        let rotX = -25;
-        let rotY = 0;
-
+        let rx = 0;
+        let ry = 0;
         let ultimoX = 0;
         let ultimoY = 0;
         let distanciaInicial = 0;
         let escalaInicial = 1;
+        let arrastrando = false;
+
+        function actualizar() {
+          modelo.setAttribute(
+            'rotation', `${rx} ${ry} 0`
+          );
+          modelo.setAttribute(
+            'scale', `${escala} ${escala} ${escala}`
+          );
+        }
 
         function distancia(a, b) {
           return Math.hypot(
@@ -77,97 +85,92 @@
           );
         }
 
-        function actualizar() {
-          el.setAttribute(
-            "rotation",
-            `${rotX} ${rotY} 0`
-          );
+        document.getElementById('reiniciar')
+          .addEventListener('click', () => {
+            escala = 1;
+            rx = 0;
+            ry = 0;
+            arrastrando = false;
+            actualizar();
+          });
 
-          el.setAttribute(
-            "scale",
-            `${escala} ${escala} ${escala}`
-          );
-        }
+        const mensaje =
+          document.getElementById('mensaje');
 
-        function reiniciar() {
-          escala = 1;
-          rotX = -25;
-          rotY = 0;
-          actualizar();
-        }
-
-        document.querySelector("#reiniciar")
-          .addEventListener("click", reiniciar);
-
-        const mensaje = document.querySelector("#mensaje");
         const target = document.querySelector(
-          "[mindar-image-target]"
+          '[mindar-image-target]'
         );
 
-        target.addEventListener("targetFound", () => {
+        target.addEventListener('targetFound', () => {
           mensaje.textContent =
-            "4.º piso detectado. Arrastrá para rotar y usá dos dedos para ampliar.";
+            '4.º piso detectado. Girá con un dedo y ampliá con dos.';
         });
 
-        target.addEventListener("targetLost", () => {
+        target.addEventListener('targetLost', () => {
           mensaje.textContent =
-            "Apuntá la cámara hacia el póster del hospital.";
+            'Apuntá la cámara hacia la lámina.';
         });
 
-        window.addEventListener("touchstart", (e) => {
-          if (e.target.closest("#reiniciar")) return;
+        window.addEventListener('touchstart', e => {
+          if (e.target.closest('#reiniciar')) return;
 
           if (e.touches.length === 1) {
+            arrastrando = true;
             ultimoX = e.touches[0].clientX;
             ultimoY = e.touches[0].clientY;
           }
 
           if (e.touches.length === 2) {
+            arrastrando = false;
             distanciaInicial = distancia(
-              e.touches[0],
-              e.touches[1]
+              e.touches[0], e.touches[1]
             );
             escalaInicial = escala;
           }
         }, { passive: true });
 
-        window.addEventListener("touchmove", (e) => {
-          if (e.target.closest("#reiniciar")) return;
+        window.addEventListener('touchmove', e => {
+          if (e.target.closest('#reiniciar')) return;
+
           if (e.cancelable) e.preventDefault();
 
-          if (e.touches.length === 1) {
-            const touch = e.touches[0];
+          if (e.touches.length === 1 && arrastrando) {
+            const t = e.touches[0];
 
-            rotY += (touch.clientX - ultimoX) * 0.4;
-            rotX -= (touch.clientY - ultimoY) * 0.25;
+            ry += (t.clientX - ultimoX) * 0.4;
+            rx -= (t.clientY - ultimoY) * 0.3;
 
-            rotX = Math.max(-70, Math.min(30, rotX));
+            rx = Math.max(-70, Math.min(70, rx));
 
-            ultimoX = touch.clientX;
-            ultimoY = touch.clientY;
-
+            ultimoX = t.clientX;
+            ultimoY = t.clientY;
             actualizar();
           }
 
           if (e.touches.length === 2 &&
               distanciaInicial > 0) {
 
-            const nuevaDistancia = distancia(
-              e.touches[0],
-              e.touches[1]
+            let nuevaDistancia = distancia(
+              e.touches[0], e.touches[1]
             );
 
             escala = escalaInicial *
-              (nuevaDistancia / distanciaInicial);
+              nuevaDistancia / distanciaInicial;
 
             escala = Math.max(
-              0.5,
-              Math.min(3, escala)
+              0.5, Math.min(3, escala)
             );
 
             actualizar();
           }
         }, { passive: false });
+
+        window.addEventListener('touchend', e => {
+          arrastrando = false;
+          if (e.touches.length < 2) {
+            distanciaInicial = 0;
+          }
+        });
 
         actualizar();
       }
@@ -178,11 +181,11 @@
 <body>
 
   <div id="mensaje">
-    Apuntá la cámara hacia el póster del hospital.
+    Versión plana 2.0 - Apuntá hacia la lámina
   </div>
 
   <button id="reiniciar">
-    Reiniciar vista
+    ↺ Reiniciar posición
   </button>
 
   <a-scene
@@ -193,9 +196,7 @@
     device-orientation-permission-ui="enabled: false">
 
     <a-assets>
-      <img
-        id="planta"
-        src="./planta-4piso.png">
+      <img id="planta" src="./planta-4piso.png">
     </a-assets>
 
     <a-camera
@@ -203,12 +204,11 @@
       look-controls="enabled: false">
     </a-camera>
 
-    <a-entity
-      mindar-image-target="targetIndex: 0">
+    <a-entity mindar-image-target="targetIndex: 0">
 
       <a-entity
-        id="plano"
-        plano-interactivo
+        id="modelo"
+        controles-plano
         position="0 0 0.04">
 
         <a-plane
