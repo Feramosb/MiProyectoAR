@@ -1,9 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>4.º Piso Hospital Fernández - WebAR</title>
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <title>Hospital Fernández - Prueba AR</title>
 
   <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
@@ -15,74 +18,32 @@
       font-family: Arial, sans-serif;
     }
 
-    #info {
+    #mensaje {
       position: fixed;
-      left: 50%;
-      bottom: 20px;
-      transform: translateX(-50%);
-      background: rgba(0,0,0,0.65);
+      top: 15px;
+      left: 5%;
+      width: 90%;
+      background: rgba(0,0,0,0.75);
       color: white;
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-size: 14px;
-      z-index: 10;
+      padding: 12px;
+      box-sizing: border-box;
       text-align: center;
-      max-width: 90%;
+      border-radius: 10px;
+      z-index: 999;
     }
   </style>
 
   <script>
-    let currentScale = 1;
-    let currentRotationY = 0;
-    let startDistance = 0;
-    let startScale = 1;
-    let isDragging = false;
-    let lastX = 0;
-
-    function getDistance(touch1, touch2) {
-      const dx = touch2.clientX - touch1.clientX;
-      const dy = touch2.clientY - touch1.clientY;
-      return Math.sqrt(dx * dx + dy * dy);
-    }
-
-    AFRAME.registerComponent('gesture-controls', {
+    AFRAME.registerComponent('detector', {
       init: function () {
-        const el = this.el;
+        const mensaje = document.querySelector('#mensaje');
 
-        window.addEventListener('touchstart', (e) => {
-          if (e.touches.length === 1) {
-            isDragging = true;
-            lastX = e.touches[0].clientX;
-          }
+        this.el.addEventListener('targetFound', () => {
+          mensaje.textContent = '¡PLANTA DETECTADA!';
+        });
 
-          if (e.touches.length === 2) {
-            startDistance = getDistance(e.touches[0], e.touches[1]);
-            startScale = currentScale;
-          }
-        }, { passive: true });
-
-        window.addEventListener('touchmove', (e) => {
-          if (e.touches.length === 1 && isDragging) {
-            const deltaX = e.touches[0].clientX - lastX;
-            lastX = e.touches[0].clientX;
-
-            currentRotationY += deltaX * 0.4;
-            el.setAttribute('rotation', `0 ${currentRotationY} 0`);
-          }
-
-          if (e.touches.length === 2) {
-            const newDistance = getDistance(e.touches[0], e.touches[1]);
-            let newScale = startScale * (newDistance / startDistance);
-
-            newScale = Math.max(0.6, Math.min(2.5, newScale));
-            currentScale = newScale;
-
-            el.setAttribute('scale', `${currentScale} ${currentScale} ${currentScale}`);
-          }
-        }, { passive: true });
-
-        window.addEventListener('touchend', () => {
-          isDragging = false;
+        this.el.addEventListener('targetLost', () => {
+          mensaje.textContent = 'Buscando la planta...';
         });
       }
     });
@@ -90,69 +51,53 @@
 </head>
 
 <body>
-  <div id="info">
-    Escaneá el QR, apuntá a la lámina y usá un dedo para rotar. Pinza con dos dedos para hacer zoom.
+
+  <div id="mensaje">
+    Buscando la planta...
   </div>
 
   <a-scene
     mindar-image="imageTargetSrc: ./targets.mind;"
     color-space="sRGB"
-    renderer="colorManagement: true, physicallyCorrectLights"
+    renderer="colorManagement: true"
     vr-mode-ui="enabled: false"
-    device-orientation-permission-ui="enabled: false"
-    embedded>
+    device-orientation-permission-ui="enabled: false">
 
-    <a-assets>
-      <img id="planta" src="./planta-4piso.png">
-    </a-assets>
+    <a-camera
+      position="0 0 0"
+      look-controls="enabled: false">
+    </a-camera>
 
-    <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+    <a-entity
+      mindar-image-target="targetIndex: 0"
+      detector>
 
-    <a-entity light="type: ambient; intensity: 1.2"></a-entity>
-    <a-entity light="type: directional; intensity: 1" position="1 2 1"></a-entity>
+      <!-- Superficie verde -->
+      <a-plane
+        position="0 0 0.01"
+        width="0.9"
+        height="0.65"
+        color="#00ff66"
+        material="opacity: 0.65; side: double">
+      </a-plane>
 
-    <a-entity mindar-image-target="targetIndex: 0">
-      <a-entity
-        id="modelo2d5"
-        gesture-controls
-        position="0 0 0"
-        rotation="0 0 0"
-        scale="1 1 1">
+      <!-- Cubo rojo elevado -->
+      <a-box
+        position="0 0 0.20"
+        width="0.25"
+        height="0.25"
+        depth="0.25"
+        color="#ff3333"
+        animation="property: rotation;
+                   to: 360 360 0;
+                   dur: 5000;
+                   loop: true;
+                   easing: linear">
+      </a-box>
 
-        <!-- Base -->
-        <a-box
-          position="0 0 -0.02"
-          width="1.4"
-          height="0.03"
-          depth="1"
-          color="#dddddd">
-        </a-box>
-
-        <!-- Planta como superficie -->
-        <a-plane
-          src="#planta"
-          position="0 0 0"
-          rotation="-90 0 0"
-          width="1.35"
-          height="0.95"
-          material="side: double">
-        </a-plane>
-
-        <!-- Volúmenes 2.5D de ejemplo -->
-        <a-box position="-0.32 0.07 -0.18" width="0.22" height="0.14" depth="0.18" color="#8fbcd4"></a-box>
-        <a-box position="0.02 0.05 -0.18" width="0.35" height="0.10" depth="0.18" color="#aac8d8"></a-box>
-        <a-box position="0.35 0.08 -0.18" width="0.20" height="0.16" depth="0.18" color="#8fbcd4"></a-box>
-
-        <a-box position="-0.42 0.06 0.08" width="0.16" height="0.12" depth="0.24" color="#9ec5b8"></a-box>
-        <a-box position="-0.12 0.04 0.08" width="0.24" height="0.08" depth="0.24" color="#b8d8c9"></a-box>
-        <a-box position="0.18 0.05 0.08" width="0.26" height="0.10" depth="0.24" color="#9ec5b8"></a-box>
-        <a-box position="0.48 0.07 0.08" width="0.14" height="0.14" depth="0.24" color="#89b8a7"></a-box>
-
-        <!-- Núcleo central -->
-        <a-box position="0 0.09 0" width="0.18" height="0.18" depth="0.14" color="#f0b27a"></a-box>
-
-      </a-entity>
     </a-entity>
+
   </a-scene>
 </body>
 </html>
+
