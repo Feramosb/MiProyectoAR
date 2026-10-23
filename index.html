@@ -46,7 +46,14 @@ body.fijado .mindar-ui-scanning{display:none!important}
   <button type="button" id="reiniciar">↺ Reiniciar posición</button>
  </div>
 </div>
-<a-scene mindar-image="imageTargetSrc: ./targets.mind; uiScanning: yes;" color-space="sRGB" renderer="colorManagement: true" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" embedded>
+
+<a-scene
+  mindar-image="imageTargetSrc: ./targets.mind; uiScanning: yes;"
+  color-space="sRGB"
+  renderer="colorManagement: true; alpha: true"
+  vr-mode-ui="enabled: false"
+  device-orientation-permission-ui="enabled: false">
+
  <a-assets>
   <img id="ar-plano-img" src="./planta-4piso.png" crossorigin="anonymous">
  </a-assets>
