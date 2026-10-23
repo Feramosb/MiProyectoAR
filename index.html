@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Hospital Fernández · Planos AR</title>
+<script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;font-family:Arial,sans-serif;background:#111}
+#mensaje{position:fixed;top:max(12px,env(safe-area-inset-top));left:5%;width:90%;z-index:55;text-align:center;color:white;background:rgba(14,29,43,.86);border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.45;pointer-events:none}
+#fijar{position:fixed;z-index:60;bottom:max(26px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);display:none;background:#118f58;border:1px solid #6ef0aa;color:white;padding:15px 22px;border-radius:30px;white-space:nowrap;font-size:16px;font-weight:700;box-shadow:0 4px 16px #0008}
+#visor{position:fixed;inset:70px 0 225px;z-index:30;display:none;align-items:center;justify-content:center;overflow:hidden;touch-action:none;perspective:900px}
+#modelo{position:relative;width:min(90vw,55vh);transform-style:preserve-3d;transform-origin:center center;will-change:transform;touch-action:none;flex:none}
+#planta{display:block;width:100%;height:auto;pointer-events:none;user-select:none;-webkit-user-drag:none}
+#capas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.resaltado{fill:#00ea70;fill-opacity:.56;stroke:#08783b;stroke-width:3}
+#panel{position:fixed;bottom:0;left:0;width:100%;z-index:65;display:none;background:rgba(14,29,43,.96);color:white;padding:12px 12px max(14px,env(safe-area-inset-bottom));border-radius:17px 17px 0 0;max-height:48vh;overflow:auto}
+#titulo{text-align:center;font-weight:700;font-size:14px;margin-bottom:9px}
+#pisos,#sectores,#acciones{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}
+button{font-family:inherit;touch-action:manipulation;cursor:pointer;border-radius:10px;border:1px solid #5b7681;color:white;background:#284357;padding:10px 6px;font-size:12px}
+button.activo{background:#148958;border-color:#88f9b3;font-weight:700}
+#acciones button{background:#506478}
+#subtitulo{font-size:12px;text-align:center;color:#d8e9ee;margin-top:9px}
+body.fijado .mindar-ui-scanning{display:none!important}
+</style>
+</head>
+<body>
+<div id="mensaje">Escaneá la lámina para visualizar el plano en realidad aumentada.</div>
+<button id="fijar" type="button">📌 Fijar en pantalla</button>
+<div id="visor"><div id="modelo">
+  <img id="planta" src="./planta-4piso.png" alt="Plano del hospital" draggable="false">
+  <svg id="capas" viewBox="0 0 577 433" preserveAspectRatio="none"></svg>
+</div></div>
+<div id="panel">
+ <div id="titulo">Hospital Fernández · Explorar pisos</div>
+ <div id="pisos">
+  <button type="button" data-piso="PB">Planta Baja</button>
+  <button type="button" data-piso="4">4.º Piso</button>
+ </div>
+ <div id="subtitulo">Seleccioná un sector para resaltarlo en verde</div>
+ <div id="sectores"></div>
+ <div id="acciones">
+  <button type="button" id="limpiar">Limpiar sector</button>
+  <button type="button" id="reiniciar">↺ Reiniciar posición</button>
+ </div>
+</div>
+<a-scene mindar-image="imageTargetSrc: ./targets.mind; uiScanning: yes;" color-space="sRGB" renderer="colorManagement: true" vr-mode-ui="enabled: false" device-orientation-permission-ui="enabled: false" embedded>
+ <a-assets>
+  <img id="ar-plano-img" src="./planta-4piso.png" crossorigin="anonymous">
+ </a-assets>
+ <a-camera position="0 0 0" look-controls="enabled: false"></a-camera>
+ <a-entity id="marcador" mindar-image-target="targetIndex: 0">
+  <a-plane id="ar-plano" position="0 0 0.045" width="1" height="0.75" material="src: #ar-plano-img; shader: flat; transparent: true; side: double; depthWrite: false"></a-plane>
+ </a-entity>
+</a-scene>
+<script>
+// Zonas del 4.º piso: mantenidas de la versión anterior.
+// Zonas de Planta Baja: aproximaciones según la lámina numerada enviada.
+const pisos={
+ '4':{
+   imagen:'./planta-4piso.png', ancho:577,alto:433,
+   sectores:[
+    {nombre:'Administrativa',areas:[[261,174,70,50]]},
+    {nombre:'Obstetricia Guardia',areas:[[330,192,84,64]]},
+    {nombre:'Internación',areas:[[119,27,55,167],[405,27,58,167],[172,193,94,65]]},
+    {nombre:'Acceso Sector',areas:[[92,179,34,80],[254,245,75,35],[461,179,30,80]]},
+    {nombre:'Sector 5',areas:[[119,260,56,150]]},
+    {nombre:'Sector 6',areas:[[405,260,59,145]]}
+   ]
+ },
+ 'PB':{
+   imagen:'./planta-baja.png', ancho:1122,alto:1402,
+   sectores:[
+    {nombre:'Pediatría y Neonatología',areas:[[790,820,68,340]]},
+    {nombre:'Obstetricia / Ginecología',areas:[[898,820,65,340]]},
+    {nombre:'Tokens de confirmación',areas:[[470,728,153,62]]},
+    {nombre:'Laboratorio',areas:[[113,622,140,67]]},
+    {nombre:'Turnos',areas:[[875,622,77,67]]},
+    {nombre:'Sector de acceso',areas:[[47,650,59,150],[475,792,151,70],[969,650,60,150]]}
+   ]
+ }
+};
+const $=id=>document.getElementById(id);
+const visor=$('visor'),modelo=$('modelo'),planta=$('planta'),capas=$('capas'),panel=$('panel'),mensaje=$('mensaje'),fijar=$('fijar');
+let detectado=false, fijado=false, pisoActual='4';
+let escala=1,rotX=0,rotY=0,desplazamientoX=0,desplazamientoY=0;
+let gesto='',ultimoX=0,ultimoY=0,distanciaInicial=0,escalaInicial=1;
+let centroInicialX=0,centroInicialY=0,desplazamientoInicialX=0,desplazamientoInicialY=0;
+const limitar=(v,a,b)=>Math.max(a,Math.min(b,v));
+function actualizarVista(){modelo.style.transform=`translate(${desplazamientoX}px,${desplazamientoY}px) rotateX(${rotX}deg) rotateY(${rotY}deg) scale(${escala})`;}
+function reiniciar(){escala=1;rotX=0;rotY=0;desplazamientoX=0;desplazamientoY=0;gesto='';actualizarVista();}
+function limpiar(){capas.replaceChildren();document.querySelectorAll('[data-sector]').forEach(b=>b.classList.remove('activo'));}
+function sector(n){limpiar();const cfg=pisos[pisoActual].sectores[n];if(!cfg)return;cfg.areas.forEach(([x,y,w,h])=>{const r=document.createElementNS('http://www.w3.org/2000/svg','rect');r.setAttribute('x',x);r.setAttribute('y',y);r.setAttribute('width',w);r.setAttribute('height',h);r.setAttribute('rx',Math.min(w,h)/5);r.setAttribute('class','resaltado');capas.appendChild(r);});document.querySelector(`[data-sector="${n}"]`)?.classList.add('activo');}
+function elegirPiso(p){pisoActual=p;const cfg=pisos[p];planta.src=cfg.imagen;modelo.style.aspectRatio=cfg.ancho+' / '+cfg.alto;capas.setAttribute('viewBox',`0 0 ${cfg.ancho} ${cfg.alto}`);const lista=$('sectores');lista.replaceChildren();cfg.sectores.forEach((s,i)=>{const b=document.createElement('button');b.type='button';b.dataset.sector=i;b.textContent=(i+1)+'. '+s.nombre;b.addEventListener('click',()=>sector(i));lista.appendChild(b);});document.querySelectorAll('[data-piso]').forEach(b=>b.classList.toggle('activo',b.dataset.piso===p));limpiar();reiniciar();}
+$('marcador').addEventListener('targetFound',()=>{if(detectado)return;detectado=true;fijar.style.display='block';mensaje.textContent='¡Plano detectado! Se encuentra vinculado a la lámina. Tocá «Fijar en pantalla» para explorarlo.';});
+fijar.addEventListener('click',()=>{if(!detectado||fijado)return;fijado=true;document.body.classList.add('fijado');fijar.style.display='none';$('ar-plano').setAttribute('visible',false);visor.style.display='flex';panel.style.display='block';elegirPiso('4');mensaje.innerHTML='<strong>Plano fijado en pantalla</strong><br>1 dedo: girar · 2 dedos: mover · Pellizcar: zoom';});
+document.querySelectorAll('[data-piso]').forEach(b=>b.addEventListener('click',()=>elegirPiso(b.dataset.piso)));
+$('limpiar').addEventListener('click',limpiar);$('reiniciar').addEventListener('click',reiniciar);
+const distancia=(a,b)=>Math.hypot(a.clientX-b.clientX,a.clientY-b.clientY);
+const centro=(a,b)=>({x:(a.clientX+b.clientX)/2,y:(a.clientY+b.clientY)/2});
+function iniciarDos(a,b){gesto='dos';distanciaInicial=distancia(a,b);escalaInicial=escala;const c=centro(a,b);centroInicialX=c.x;centroInicialY=c.y;desplazamientoInicialX=desplazamientoX;desplazamientoInicialY=desplazamientoY;}
+visor.addEventListener('touchstart',e=>{if(e.touches.length===1){gesto='uno';ultimoX=e.touches[0].clientX;ultimoY=e.touches[0].clientY;}else if(e.touches.length===2)iniciarDos(e.touches[0],e.touches[1]);},{passive:true});
+visor.addEventListener('touchmove',e=>{if(e.cancelable)e.preventDefault();if(e.touches.length===1&&gesto==='uno'){const t=e.touches[0];rotY=limitar(rotY+(t.clientX-ultimoX)*.35,-70,70);rotX=limitar(rotX-(t.clientY-ultimoY)*.30,-70,70);ultimoX=t.clientX;ultimoY=t.clientY;actualizarVista();}else if(e.touches.length===2&&gesto==='dos'){const a=e.touches[0],b=e.touches[1],c=centro(a,b);if(distanciaInicial>0)escala=limitar(escalaInicial*distancia(a,b)/distanciaInicial,.5,3);desplazamientoX=desplazamientoInicialX+c.x-centroInicialX;desplazamientoY=desplazamientoInicialY+c.y-centroInicialY;actualizarVista();}},{passive:false});
+visor.addEventListener('touchend',e=>{if(e.touches.length===0)gesto='';else if(e.touches.length===1){gesto='uno';ultimoX=e.touches[0].clientX;ultimoY=e.touches[0].clientY;}else if(e.touches.length===2)iniciarDos(e.touches[0],e.touches[1]);});
+visor.addEventListener('touchcancel',()=>gesto='');
+let mouse=false;visor.addEventListener('mousedown',e=>{mouse=true;ultimoX=e.clientX;ultimoY=e.clientY;});window.addEventListener('mouseup',()=>mouse=false);visor.addEventListener('mousemove',e=>{if(!mouse)return;rotY=limitar(rotY+(e.clientX-ultimoX)*.35,-70,70);rotX=limitar(rotX-(e.clientY-ultimoY)*.3,-70,70);ultimoX=e.clientX;ultimoY=e.clientY;actualizarVista();});
+elegirPiso('4');
+</script>
+</body>
+</html>
