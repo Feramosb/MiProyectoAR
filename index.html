@@ -314,8 +314,14 @@ body.fijado .mindar-ui-scanning {
      ESCENA REALIDAD AUMENTADA
 ===================================== -->
 
+
 <a-scene
-  mindar-image="imageTargetSrc: ./targets.mind; uiScanning: yes;"
+  mindar-image="imageTargetSrc: ./targets.mind;
+                uiScanning: yes;
+                filterMinCF: 0.001;
+                filterBeta: 10;
+                warmupTolerance: 8;
+                missTolerance: 10;"
   color-space="sRGB"
   renderer="colorManagement: true; alpha: true"
   vr-mode-ui="enabled: false"
