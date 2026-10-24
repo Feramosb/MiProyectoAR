@@ -12,236 +12,232 @@
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
 <style>
-/* ===============================
-   ESTILOS GENERALES
-=============================== */
-*{
-  box-sizing:border-box;
+* {
+  box-sizing: border-box;
 }
 
-html,body{
-  margin:0;
-  width:100%;
-  height:100%;
-  overflow:hidden;
-  font-family:Arial,sans-serif;
-  background:transparent!important;
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  background: transparent !important;
 }
 
-/* CAMARA Y REALIDAD AUMENTADA */
+/* CÁMARA Y REALIDAD AUMENTADA */
 
-a-scene{
-  position:fixed!important;
-  inset:0;
-  width:100%!important;
-  height:100%!important;
-  z-index:1;
-  background:transparent!important;
+a-scene {
+  position: fixed !important;
+  inset: 0;
+  width: 100% !important;
+  height: 100% !important;
+  z-index: 1;
+  background: transparent !important;
 }
 
-a-scene canvas.a-canvas{
-  background:transparent!important;
+a-scene canvas.a-canvas {
+  background: transparent !important;
 }
 
 /* MENSAJE SUPERIOR */
 
-#mensaje{
-  position:fixed;
-  top:max(12px,env(safe-area-inset-top));
-  left:5%;
-  width:90%;
-  z-index:55;
-  text-align:center;
-  color:white;
-  background:rgba(14,29,43,.86);
-  border-radius:12px;
-  padding:10px 12px;
-  font-size:13px;
-  line-height:1.45;
-  pointer-events:none;
+#mensaje {
+  position: fixed;
+  top: max(12px, env(safe-area-inset-top));
+  left: 5%;
+  width: 90%;
+  z-index: 55;
+  text-align: center;
+  color: white;
+  background: rgba(14,29,43,.86);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  pointer-events: none;
 }
 
-/* BOTON FIJAR */
+/* BOTÓN FIJAR */
 
-#fijar{
-  position:fixed;
-  z-index:60;
-  bottom:max(26px,env(safe-area-inset-bottom));
-  left:50%;
-  transform:translateX(-50%);
-  display:none;
-  background:#118f58;
-  border:1px solid #6ef0aa;
-  color:white;
-  padding:15px 22px;
-  border-radius:30px;
-  white-space:nowrap;
-  font-size:16px;
-  font-weight:700;
-  box-shadow:0 4px 16px #0008;
+#fijar {
+  position: fixed;
+  z-index: 60;
+  bottom: max(26px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  display: none;
+  background: #118f58;
+  border: 1px solid #6ef0aa;
+  color: white;
+  padding: 15px 22px;
+  border-radius: 30px;
+  white-space: nowrap;
+  font-size: 16px;
+  font-weight: bold;
+  box-shadow: 0 4px 16px #0008;
 }
 
 /* VISOR INTERACTIVO */
 
-#visor{
-  position:fixed;
-  inset:70px 0 225px;
-  z-index:30;
-  display:none;
-  align-items:center;
-  justify-content:center;
-  overflow:hidden;
-  touch-action:none;
-  perspective:900px;
+#visor {
+  position: fixed;
+  inset: 70px 0 225px;
+  z-index: 30;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  touch-action: none;
+  perspective: 900px;
 }
 
-#modelo{
-  position:relative;
-  width:min(90vw,55vh);
-  transform-style:preserve-3d;
-  transform-origin:center center;
-  will-change:transform;
-  touch-action:none;
-  flex:none;
+#modelo {
+  position: relative;
+  width: min(90vw,55vh);
+  aspect-ratio: 1 / 1;
+  flex: none;
+  transform-style: preserve-3d;
+  transform-origin: center;
+  will-change: transform;
+  touch-action: none;
 }
 
-#planta{
-  display:block;
-  width:100%;
-  height:auto;
-  pointer-events:none;
-  user-select:none;
-  -webkit-user-drag:none;
+#planta {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
 }
 
-/* ===============================
-   RESALTADOS: SOLO VERDE
-=============================== */
+/* MARCADORES VERDES */
 
-#capas{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  pointer-events:none;
-  overflow:visible;
+#capas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  overflow: hidden;
 }
 
-.resaltado{
-  fill:#00e66b;
-  fill-opacity:.40;
-  stroke:#00b85c;
-  stroke-width:4;
+.resaltado {
+  fill: #00e66b;
+  fill-opacity: 0.42;
+  stroke: #00a84f;
+  stroke-width: 3;
 }
 
-/* MENU INFERIOR */
+/* MENÚ INFERIOR */
 
-#panel{
-  position:fixed;
-  bottom:0;
-  left:0;
-  width:100%;
-  z-index:65;
-  display:none;
-  background:rgba(14,29,43,.96);
-  color:white;
-  padding:12px 12px max(14px,env(safe-area-inset-bottom));
-  border-radius:17px 17px 0 0;
-  max-height:49vh;
-  overflow-y:auto;
+#panel {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  z-index: 65;
+  display: none;
+  background: rgba(14,29,43,.96);
+  color: white;
+  padding: 12px 12px
+    max(14px,env(safe-area-inset-bottom));
+  border-radius: 17px 17px 0 0;
+  max-height: 49vh;
+  overflow-y: auto;
 }
 
-#titulo{
-  text-align:center;
-  font-weight:700;
-  font-size:14px;
-  margin-bottom:9px;
+#titulo {
+  text-align: center;
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 9px;
 }
 
-#pisos,#acciones{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:7px;
-  margin-top:7px;
+#pisos, #acciones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 7px;
 }
 
-button{
-  font-family:inherit;
-  touch-action:manipulation;
-  cursor:pointer;
-  border-radius:10px;
-  border:1px solid #5b7681;
-  color:white;
-  background:#284357;
-  padding:10px 6px;
-  font-size:12px;
+button {
+  font-family: inherit;
+  touch-action: manipulation;
+  cursor: pointer;
+  border-radius: 10px;
+  border: 1px solid #5b7681;
+  color: white;
+  background: #284357;
+  padding: 10px 6px;
+  font-size: 12px;
 }
 
-button.activo{
-  background:#148958;
-  border-color:#88f9b3;
-  font-weight:700;
+button.activo {
+  background: #148958;
+  border-color: #88f9b3;
+  font-weight: bold;
 }
 
-#acciones button{
-  background:#506478;
+#acciones button {
+  background: #506478;
 }
 
-#subtitulo{
-  font-size:12px;
-  text-align:center;
-  color:#d8e9ee;
-  margin:10px 0;
+#subtitulo {
+  font-size: 12px;
+  text-align: center;
+  color: #d8e9ee;
+  margin: 10px 0;
 }
 
-/* SECTORES PRINCIPALES */
+/* SECTORES */
 
-#sectores{
-  display:flex;
-  flex-direction:column;
-  gap:7px;
+#sectores {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
 
-.boton-principal{
-  width:100%;
-  text-align:left;
-  font-size:13px;
-  padding:11px 13px;
-  border-left:5px solid #00c967;
+.boton-principal {
+  width: 100%;
+  text-align: left;
+  font-size: 13px;
+  padding: 11px 13px;
+  border-left: 5px solid #00c967;
 }
 
-/* SUBSECTORES */
-
-.subsectores{
-  display:none;
-  grid-template-columns:1fr 1fr;
-  gap:7px;
-  padding:5px 4px 5px 14px;
+.subsectores {
+  display: none;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  padding: 5px 4px 5px 14px;
 }
 
-.subsectores.abierto{
-  display:grid;
+.subsectores.abierto {
+  display: grid;
 }
 
-.boton-subsector{
-  font-size:12px;
-  padding:10px 7px;
-  border-left:4px solid #00c967;
-  background:#334958;
+.boton-subsector {
+  font-size: 12px;
+  padding: 10px 7px;
+  border-left: 4px solid #00c967;
+  background: #334958;
 }
 
-#seleccion{
-  text-align:center;
-  color:#a9f3c9;
-  font-size:12px;
-  min-height:17px;
-  margin:8px 0 2px;
+#seleccion {
+  text-align: center;
+  color: #a9f3c9;
+  font-size: 12px;
+  min-height: 17px;
+  margin: 8px 0 2px;
 }
 
-/* OCULTAR ESCANER AL FIJAR */
+/* OCULTAR SCANNER DESPUÉS DE FIJAR */
 
-body.fijado .mindar-ui-scanning{
-  display:none!important;
+body.fijado .mindar-ui-scanning {
+  display: none !important;
 }
 </style>
 </head>
@@ -249,27 +245,24 @@ body.fijado .mindar-ui-scanning{
 <body>
 
 <!-- MENSAJE INICIAL -->
-
 <div id="mensaje">
   Escaneá la lámina para visualizar el plano
   en realidad aumentada.
 </div>
 
-<!-- BOTON PARA FIJAR -->
-
+<!-- BOTÓN FIJAR -->
 <button id="fijar" type="button">
   📌 Fijar en pantalla
 </button>
 
-<!-- PLANO INTERACTIVO -->
-
+<!-- PLANO FIJO INTERACTIVO -->
 <div id="visor">
   <div id="modelo">
 
     <img
       id="planta"
       src="./planta-4piso.png"
-      alt="Plano del Hospital Fernández"
+      alt="Plano del hospital"
       draggable="false">
 
     <svg
@@ -281,8 +274,7 @@ body.fijado .mindar-ui-scanning{
   </div>
 </div>
 
-<!-- MENU DE PISOS -->
-
+<!-- MENÚ -->
 <div id="panel">
 
   <div id="titulo">
@@ -319,8 +311,7 @@ body.fijado .mindar-ui-scanning{
 
 </div>
 
-<!-- ESCENA REALIDAD AUMENTADA -->
-
+<!-- ESCENA AR -->
 <a-scene
   mindar-image="
     imageTargetSrc: ./targets.mind;
@@ -356,189 +347,215 @@ body.fijado .mindar-ui-scanning{
       position="0 0 0.3"
       width="1"
       height="1"
-      material="src: #ar-plano-img; shader: flat; transparent: true; side: double; depthWrite: false">
+      material="src: #ar-plano-img;
+                shader: flat;
+                transparent: true;
+                side: double;
+                depthWrite: false">
     </a-plane>
 
   </a-entity>
+
 </a-scene>
 
 <script>
 
-/* =====================================
-   CONFIGURACION DE LOS PISOS
-===================================== */
+/* ==================================
+   CONFIGURACIÓN DE LOS DOS PISOS
+
+   Coordenadas: imagen 1254 x 1254
+================================== */
 
 const pisos = {
 
-  /* ===============================
-     CUARTO PISO
-     IMAGEN CUADRADA 1254 x 1254
-  =============================== */
+  /* ==================================
+     4.º PISO
+  ================================== */
 
-  
-"4": {
-  imagen: "./planta-4piso.png",
-  ancho: 1254,
-  alto: 1254,
+  "4": {
+    imagen: "./planta-4piso.png",
+    ancho: 1254,
+    alto: 1254,
 
-  sectores: [
-    {
-      id: "1",
-      nombre: "Administrativo",
-      areas: [
-        [539, 498, 181, 100]
-      ]
-    },
+    sectores: [
 
-    {
-      id: "2",
-      nombre: "Guardias",
-      subsectores: [
-        {
-          id: "-",
-          nombre: "Obstetricia / Ecografías",
-          areas: [
-            [729, 547, 220, 73]
-          ]
-        },
-        {
-          id: "-",
-          nombre: "Cuidados especiales",
-          areas: [
-            [729, 642, 219, 75]
-          ]
-        }
-      ]
-    },
+      {
+        id: "1",
+        nombre: "Administrativo",
+        areas: [
+          [539,498,181,100]
+        ]
+      },
 
-    {
-      id: "3",
-      nombre: "Internaciones",
-      subsectores: [
-        {
-          id: "-",
-          nombre: "Pediatría",
-          areas: [
-            [325, 563, 228, 146]
-          ]
-        },
-        {
-          id: "-",
-          nombre: "Ginecología",
-          areas: [
-            [207, 737, 106, 391]
-          ]
-        },
-        {
-          id: "-",
-          nombre: "Conjunta",
-          areas: [
-            [219, 116, 110, 450]
-          ]
-        },
-        {
-          id: "-",
-          nombre: "Neonatología",
-          areas: [
-            [945, 116, 110, 450]
-          ]
-        }
-      ]
-    },
+      {
+        id: "2",
+        nombre: "Guardias",
 
-    {
-      id: "4",
-      nombre: "Centro Obstétrico",
-      areas: [
-        [948, 744, 107, 353]
-      ]
-    },
+        subsectores: [
 
-    {
-      id: "5",
-      nombre: "Sector de acceso",
-      areas: [
-        [127, 529, 70, 218],
-        [550, 674, 177, 95],
-        [1052, 520, 69, 221]
-      ]
-    }
-  ]
-},
+          {
+            id: "2.1",
+            nombre: "Obstetricia / Ecografías",
+            areas: [
+              [729,547,220,73]
+            ]
+          },
 
-  /* ===============================
+          {
+            id: "2.2",
+            nombre: "Cuidados especiales",
+            areas: [
+              [729,642,219,75]
+            ]
+          }
+
+        ]
+      },
+
+      {
+        id: "3",
+        nombre: "Internaciones",
+
+        subsectores: [
+
+          {
+            id: "3.1",
+            nombre: "Pediatría",
+            areas: [
+              [325,563,228,146]
+            ]
+          },
+
+          {
+            id: "3.2",
+            nombre: "Ginecología",
+            areas: [
+              [207,737,106,391]
+            ]
+          },
+
+          {
+            id: "3.3",
+            nombre: "Conjunta",
+            areas: [
+              [219,116,110,450]
+            ]
+          },
+
+          {
+            id: "3.4",
+            nombre: "Neonatología",
+            areas: [
+              [945,116,110,450]
+            ]
+          }
+
+        ]
+      },
+
+      {
+        id: "4",
+        nombre: "Centro Obstétrico",
+        areas: [
+          [948,744,107,353]
+        ]
+      },
+
+      {
+        id: "5",
+        nombre: "Sector de acceso",
+        areas: [
+          [127,529,70,218],
+          [550,674,177,95],
+          [1052,520,69,221]
+        ]
+      }
+
+    ]
+  },
+
+  /* ==================================
      PLANTA BAJA
-     MANTIENE LOS SECTORES ACTUALES
-  =============================== */
+     NUEVA ORGANIZACIÓN
+  ================================== */
 
   "PB": {
-  imagen: "./planta-baja.png",
-  ancho: 1254,
-  alto: 1254,
+    imagen: "./planta-baja.png",
+    ancho: 1254,
+    alto: 1254,
 
-  sectores: [
-    {
-      id: "1",
-      nombre: "Confirmación de Tokens",
-      areas: [
-        [520, 565, 205, 82]
-      ]
-    },
+    sectores: [
 
-    {
-      id: "2",
-      nombre: "Consultorios",
-      subsectores: [
-        {
-          id: "-",
-          nombre: "Pediatría / Neonatología",
-          areas: [
-            [918, 555, 78, 430]
-          ]
-        },
-        {
-          id: "-",
-          nombre: "Obstetricia / Ginecología",
-          areas: [
-            [1016, 555, 78, 430]
-          ]
-        }
-      ]
-    },
+      {
+        id: "1",
+        nombre: "Confirmación de Tokens",
+        areas: [
+          [520,565,205,82]
+        ]
+      },
 
-    {
-      id: "3",
-      nombre: "Laboratorio",
-      areas: [
-        [250, 540, 170, 78]
-      ]
-    },
+      {
+        id: "2",
+        nombre: "Consultorios",
 
-    {
-      id: "4",
-      nombre: "Mesón de turnos",
-      areas: [
-        [915, 520, 118, 78]
-      ]
-    },
+        subsectores: [
 
-    {
-      id: "5",
-      nombre: "Sector de acceso",
-      areas: [
-        [148, 505, 63, 190],
-        [523, 650, 202, 76],
-        [1095, 505, 63, 190]
-      ]
-    }
-  ]
-}
+          {
+            id: "2.1",
+            nombre: "Pediatría / Neonatología",
+            areas: [
+              [918,555,78,430]
+            ]
+          },
 
-/* =====================================
+          {
+            id: "2.2",
+            nombre: "Obstetricia / Ginecología",
+            areas: [
+              [1016,555,78,430]
+            ]
+          }
+
+        ]
+      },
+
+      {
+        id: "3",
+        nombre: "Laboratorio",
+        areas: [
+          [250,540,170,78]
+        ]
+      },
+
+      {
+        id: "4",
+        nombre: "Mesón de turnos",
+        areas: [
+          [915,520,118,78]
+        ]
+      },
+
+      {
+        id: "5",
+        nombre: "Sector de acceso",
+        areas: [
+          [148,505,63,190],
+          [523,650,202,76],
+          [1095,505,63,190]
+        ]
+      }
+
+    ]
+  }
+
+};
+
+/* ==================================
    ELEMENTOS
-===================================== */
+================================== */
 
-const $ = id => document.getElementById(id);
+const $ = id =>
+  document.getElementById(id);
 
 const visor = $("visor");
 const modelo = $("modelo");
@@ -548,9 +565,9 @@ const panel = $("panel");
 const mensaje = $("mensaje");
 const fijar = $("fijar");
 
-/* =====================================
+/* ==================================
    ESTADO GENERAL
-===================================== */
+================================== */
 
 let detectado = false;
 let fijado = false;
@@ -562,8 +579,6 @@ let rotY = 0;
 
 let desplazamientoX = 0;
 let desplazamientoY = 0;
-
-/* GESTOS */
 
 let gesto = "";
 let ultimoX = 0;
@@ -578,14 +593,14 @@ let centroInicialY = 0;
 let desplazamientoInicialX = 0;
 let desplazamientoInicialY = 0;
 
-const limitar = (valor,min,max) =>
-  Math.max(min,Math.min(max,valor));
+const limitar = (v,min,max) =>
+  Math.max(min,Math.min(max,v));
 
-/* =====================================
-   ACTUALIZAR VISTA
-===================================== */
+/* ==================================
+   TRANSFORMAR PLANO
+================================== */
 
-function actualizarVista(){
+function actualizarVista() {
 
   modelo.style.transform = `
     translate(
@@ -599,11 +614,7 @@ function actualizarVista(){
 
 }
 
-/* =====================================
-   REINICIAR POSICION
-===================================== */
-
-function reiniciar(){
+function reiniciar() {
 
   escala = 1;
   rotX = 0;
@@ -615,30 +626,36 @@ function reiniciar(){
   gesto = "";
 
   actualizarVista();
+
 }
 
-/* =====================================
+/* ==================================
    LIMPIAR MARCADORES
-===================================== */
+================================== */
 
-function limpiar(){
+function limpiar() {
 
   capas.replaceChildren();
 
   document.querySelectorAll(
     ".boton-principal,.boton-subsector"
   ).forEach(boton => {
+
     boton.classList.remove("activo");
+
   });
 
   $("seleccion").textContent = "";
+
 }
 
-/* =====================================
-   DIBUJAR AREAS VERDES
-===================================== */
+/* ==================================
+   DIBUJAR MARCADORES VERDES
+================================== */
 
-function dibujarAreas(areas){
+function dibujarAreas(areas) {
+
+  if (!areas) return;
 
   areas.forEach(([x,y,w,h]) => {
 
@@ -668,17 +685,18 @@ function dibujarAreas(areas){
 
 }
 
-/* =====================================
+/* ==================================
    SELECCIONAR SECTOR PRINCIPAL
-===================================== */
+================================== */
 
-function seleccionarPrincipal(sector,boton){
+function seleccionarPrincipal(sector,boton) {
 
   limpiar();
 
-  /* SI TIENE SUBSECTORES, MARCAR TODOS */
+  /* Si es un grupo, marcar todos
+     sus subsectores */
 
-  if(sector.subsectores){
+  if (sector.subsectores) {
 
     sector.subsectores.forEach(sub => {
       dibujarAreas(sub.areas);
@@ -697,15 +715,15 @@ function seleccionarPrincipal(sector,boton){
 
 }
 
-/* =====================================
+/* ==================================
    SELECCIONAR SUBSECTOR
-===================================== */
+================================== */
 
-function seleccionarSubsector(sub,boton){
+function seleccionarSubsector(sub,boton) {
 
   limpiar();
 
-  /* MOSTRAR SOLAMENTE EL AREA ELEGIDA */
+  /* Mostrar solamente su ubicación */
 
   dibujarAreas(sub.areas);
 
@@ -716,11 +734,11 @@ function seleccionarSubsector(sub,boton){
 
 }
 
-/* =====================================
-   CREAR MENU DINAMICO
-===================================== */
+/* ==================================
+   CREAR MENÚ AUTOMÁTICO
+================================== */
 
-function crearMenu(){
+function crearMenu() {
 
   const contenedor = $("sectores");
 
@@ -730,34 +748,33 @@ function crearMenu(){
 
   lista.forEach(sector => {
 
-    const principal = document.createElement(
-      "button"
-    );
+    const principal =
+      document.createElement("button");
 
     principal.type = "button";
-    principal.className = "boton-principal";
+    principal.className =
+      "boton-principal";
 
     principal.textContent =
-      sector.id + ". " + sector.nombre +
+      sector.id + ". " +
+      sector.nombre +
       (sector.subsectores ? " ▾" : "");
 
     contenedor.appendChild(principal);
 
-    /* SECTORES CON SUBSECTORES */
+    /* GRUPOS CON SUBSECTORES */
 
-    if(sector.subsectores){
+    if (sector.subsectores) {
 
-      const subMenu = document.createElement(
-        "div"
-      );
+      const subMenu =
+        document.createElement("div");
 
       subMenu.className = "subsectores";
 
       sector.subsectores.forEach(sub => {
 
-        const boton = document.createElement(
-          "button"
-        );
+        const boton =
+          document.createElement("button");
 
         boton.type = "button";
 
@@ -765,7 +782,8 @@ function crearMenu(){
           "boton-subsector";
 
         boton.textContent =
-          sub.id + ". " + sub.nombre;
+          sub.id + ". " +
+          sub.nombre;
 
         boton.addEventListener(
           "click",
@@ -794,7 +812,7 @@ function crearMenu(){
               "abierto"
             );
 
-          /* CERRAR OTROS SUBMENUS */
+          /* Cerrar otros submenús */
 
           document.querySelectorAll(
             ".subsectores"
@@ -806,9 +824,9 @@ function crearMenu(){
 
           });
 
-          /* ABRIR EL SUBMENU ELEGIDO */
+          /* Abrir el seleccionado */
 
-          if(!estabaAbierto){
+          if (!estabaAbierto) {
 
             subMenu.classList.add(
               "abierto"
@@ -816,7 +834,8 @@ function crearMenu(){
 
           }
 
-          /* MARCAR TODAS LAS AREAS */
+          /* Marcar todos los servicios
+             de este grupo */
 
           seleccionarPrincipal(
             sector,
@@ -828,9 +847,9 @@ function crearMenu(){
 
     }
 
-    /* SECTORES SIN SUBSECTORES */
+    /* SECTORES DIRECTOS */
 
-    else{
+    else {
 
       principal.addEventListener(
         "click",
@@ -850,26 +869,26 @@ function crearMenu(){
 
 }
 
-/* =====================================
+/* ==================================
    CAMBIAR DE PISO
-===================================== */
+================================== */
 
-function elegirPiso(piso){
+function elegirPiso(piso) {
 
-  if(!pisos[piso]) return;
+  if (!pisos[piso]) return;
 
   pisoActual = piso;
 
-  const config = pisos[piso];
+  const cfg = pisos[piso];
 
-  planta.src = config.imagen;
+  planta.src = cfg.imagen;
 
   modelo.style.aspectRatio =
-    config.ancho + " / " + config.alto;
+    cfg.ancho + " / " + cfg.alto;
 
   capas.setAttribute(
     "viewBox",
-    `0 0 ${config.ancho} ${config.alto}`
+    `0 0 ${cfg.ancho} ${cfg.alto}`
   );
 
   crearMenu();
@@ -890,15 +909,15 @@ function elegirPiso(piso){
 
 }
 
-/* =====================================
-   DETECTAR PLANTA EN AR
-===================================== */
+/* ==================================
+   RECONOCIMIENTO AR
+================================== */
 
 $("marcador").addEventListener(
   "targetFound",
   () => {
 
-    if(detectado) return;
+    if (detectado) return;
 
     detectado = true;
 
@@ -910,15 +929,15 @@ $("marcador").addEventListener(
   }
 );
 
-/* =====================================
+/* ==================================
    FIJAR EN PANTALLA
-===================================== */
+================================== */
 
 fijar.addEventListener(
   "click",
   () => {
 
-    if(!detectado || fijado) return;
+    if (!detectado || fijado) return;
 
     fijado = true;
 
@@ -928,14 +947,14 @@ fijar.addEventListener(
 
     fijar.style.display = "none";
 
-    /* OCULTAR MODELO AR */
+    /* Ocultar plano AR */
 
     $("ar-plano").setAttribute(
       "visible",
       false
     );
 
-    /* MOSTRAR PLANO INTERACTIVO */
+    /* Mostrar visor y menú */
 
     visor.style.display = "flex";
     panel.style.display = "block";
@@ -951,9 +970,9 @@ fijar.addEventListener(
   }
 );
 
-/* =====================================
+/* ==================================
    BOTONES DE PISOS
-===================================== */
+================================== */
 
 document.querySelectorAll(
   "[data-piso]"
@@ -972,7 +991,7 @@ document.querySelectorAll(
 
 });
 
-/* BOTONES DE ACCIONES */
+/* BOTONES LIMPIAR Y REINICIAR */
 
 $("limpiar").addEventListener(
   "click",
@@ -984,14 +1003,14 @@ $("reiniciar").addEventListener(
   reiniciar
 );
 
-/* =====================================
-   CALCULOS DE GESTOS
-===================================== */
+/* ==================================
+   CÁLCULOS DE GESTOS
+================================== */
 
 const distancia = (a,b) =>
   Math.hypot(
-    a.clientX - b.clientX,
-    a.clientY - b.clientY
+    a.clientX-b.clientX,
+    a.clientY-b.clientY
   );
 
 const centro = (a,b) => ({
@@ -999,16 +1018,15 @@ const centro = (a,b) => ({
   y:(a.clientY+b.clientY)/2
 });
 
-/* =====================================
-   INICIAR GESTO CON DOS DEDOS
-===================================== */
+/* ==================================
+   DOS DEDOS
+================================== */
 
-function iniciarDos(a,b){
+function iniciarDos(a,b) {
 
   gesto = "dos";
 
   distanciaInicial = distancia(a,b);
-
   escalaInicial = escala;
 
   const c = centro(a,b);
@@ -1024,15 +1042,15 @@ function iniciarDos(a,b){
 
 }
 
-/* =====================================
-   INICIO DEL TOQUE
-===================================== */
+/* ==================================
+   TOUCH START
+================================== */
 
 visor.addEventListener(
   "touchstart",
   e => {
 
-    if(e.touches.length === 1){
+    if (e.touches.length === 1) {
 
       gesto = "uno";
 
@@ -1044,7 +1062,7 @@ visor.addEventListener(
 
     }
 
-    else if(e.touches.length === 2){
+    else if (e.touches.length === 2) {
 
       iniciarDos(
         e.touches[0],
@@ -1057,24 +1075,24 @@ visor.addEventListener(
   {passive:true}
 );
 
-/* =====================================
-   MOVIMIENTO DEL TOQUE
-===================================== */
+/* ==================================
+   TOUCH MOVE
+================================== */
 
 visor.addEventListener(
   "touchmove",
   e => {
 
-    if(e.cancelable){
+    if (e.cancelable) {
       e.preventDefault();
     }
 
-    /* UN DEDO: GIRAR */
+    /* UN DEDO: ROTACIÓN */
 
-    if(
+    if (
       e.touches.length === 1 &&
       gesto === "uno"
-    ){
+    ) {
 
       const dedo = e.touches[0];
 
@@ -1101,17 +1119,17 @@ visor.addEventListener(
 
     /* DOS DEDOS: MOVER Y ZOOM */
 
-    else if(
+    else if (
       e.touches.length === 2 &&
       gesto === "dos"
-    ){
+    ) {
 
       const a = e.touches[0];
       const b = e.touches[1];
 
       const c = centro(a,b);
 
-      if(distanciaInicial > 0){
+      if (distanciaInicial > 0) {
 
         escala = limitar(
           escalaInicial *
@@ -1125,11 +1143,11 @@ visor.addEventListener(
 
       desplazamientoX =
         desplazamientoInicialX +
-        c.x - centroInicialX;
+        c.x-centroInicialX;
 
       desplazamientoY =
         desplazamientoInicialY +
-        c.y - centroInicialY;
+        c.y-centroInicialY;
 
       actualizarVista();
 
@@ -1139,21 +1157,21 @@ visor.addEventListener(
   {passive:false}
 );
 
-/* =====================================
-   FINALIZAR TOQUE
-===================================== */
+/* ==================================
+   TOUCH END
+================================== */
 
 visor.addEventListener(
   "touchend",
   e => {
 
-    if(e.touches.length === 0){
+    if (e.touches.length === 0) {
 
       gesto = "";
 
     }
 
-    else if(e.touches.length === 1){
+    else if (e.touches.length === 1) {
 
       gesto = "uno";
 
@@ -1165,7 +1183,7 @@ visor.addEventListener(
 
     }
 
-    else if(e.touches.length === 2){
+    else if (e.touches.length === 2) {
 
       iniciarDos(
         e.touches[0],
@@ -1184,9 +1202,9 @@ visor.addEventListener(
   }
 );
 
-/* =====================================
+/* ==================================
    CONTROLES DE MOUSE
-===================================== */
+================================== */
 
 let mouse = false;
 
@@ -1213,7 +1231,7 @@ visor.addEventListener(
   "mousemove",
   e => {
 
-    if(!mouse) return;
+    if (!mouse) return;
 
     rotY = limitar(
       rotY +
@@ -1237,13 +1255,13 @@ visor.addEventListener(
   }
 );
 
-/* =====================================
-   INICIALIZACION
-===================================== */
+/* ==================================
+   INICIALIZACIÓN
+================================== */
 
 elegirPiso("4");
 
 </script>
-
 </body>
 </html>
+
