@@ -375,113 +375,96 @@ const pisos = {
      IMAGEN CUADRADA 1254 x 1254
   =============================== */
 
-  "4":{
+  
+"4": {
+  imagen: "./planta-4piso.png",
+  ancho: 1254,
+  alto: 1254,
 
-    imagen:"./planta-4piso.png",
-    ancho:1254,
-    alto:1254,
+  sectores: [
+    {
+      id: "1",
+      nombre: "Administrativo",
+      areas: [
+        [539, 498, 181, 100]
+      ]
+    },
 
-    sectores:[
+    {
+      id: "2",
+      nombre: "Guardias",
+      subsectores: [
+        {
+          id: "2.1",
+          nombre: "Obstetricia / Ecografías",
+          areas: [
+            [729, 547, 220, 73]
+          ]
+        },
+        {
+          id: "2.2",
+          nombre: "Cuidados especiales",
+          areas: [
+            [729, 642, 219, 75]
+          ]
+        }
+      ]
+    },
 
-      /* 1. ADMINISTRATIVO */
-      {
-        id:"1",
-        nombre:"Administrativo",
-        areas:[
-          [540,410,180,95]
-        ]
-      },
+    {
+      id: "3",
+      nombre: "Internaciones",
+      subsectores: [
+        {
+          id: "3.1",
+          nombre: "Pediatría",
+          areas: [
+            [325, 563, 228, 146]
+          ]
+        },
+        {
+          id: "3.2",
+          nombre: "Ginecología",
+          areas: [
+            [207, 737, 106, 391]
+          ]
+        },
+        {
+          id: "3.3",
+          nombre: "Conjunta",
+          areas: [
+            [219, 116, 110, 450]
+          ]
+        },
+        {
+          id: "3.4",
+          nombre: "Neonatología",
+          areas: [
+            [945, 116, 110, 450]
+          ]
+        }
+      ]
+    },
 
-      /* 2. GUARDIAS */
-      {
-        id:"2",
-        nombre:"Guardias",
+    {
+      id: "4",
+      nombre: "Centro Obstétrico",
+      areas: [
+        [948, 744, 107, 353]
+      ]
+    },
 
-        subsectores:[
-
-          {
-            id:"2.1",
-            nombre:"Obstetricia / Ecografías",
-            areas:[
-              [720,500,210,78]
-            ]
-          },
-
-          {
-            id:"2.2",
-            nombre:"Cuidados especiales",
-            areas:[
-              [720,615,210,78]
-            ]
-          }
-
-        ]
-      },
-
-      /* 3. INTERNACIONES */
-      {
-        id:"3",
-        nombre:"Internaciones",
-
-        subsectores:[
-
-          {
-            id:"3.1",
-            nombre:"Pediatría",
-            areas:[
-              [365,505,210,110]
-            ]
-          },
-
-          {
-            id:"3.2",
-            nombre:"Ginecología",
-            areas:[
-              [190,650,140,420]
-            ]
-          },
-
-          {
-            id:"3.3",
-            nombre:"Conjunta",
-            areas:[
-              [190,115,140,355]
-            ]
-          },
-
-          {
-            id:"3.4",
-            nombre:"Neonatología",
-            areas:[
-              [930,115,140,355]
-            ]
-          }
-
-        ]
-      },
-
-      /* 4. CENTRO OBSTETRICO */
-      {
-        id:"4",
-        nombre:"Centro Obstétrico",
-        areas:[
-          [930,685,140,385]
-        ]
-      },
-
-      /* 5. SECTOR DE ACCESO */
-      {
-        id:"5",
-        nombre:"Sector de acceso",
-        areas:[
-          [135,455,70,185],
-          [555,615,185,85],
-          [1050,455,70,185]
-        ]
-      }
-
-    ]
-  },
+    {
+      id: "5",
+      nombre: "Sector de acceso",
+      areas: [
+        [127, 529, 70, 218],
+        [550, 674, 177, 95],
+        [1052, 520, 69, 221]
+      ]
+    }
+  ]
+},
 
   /* ===============================
      PLANTA BAJA
