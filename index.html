@@ -395,14 +395,14 @@ const pisos = {
       nombre: "Guardias",
       subsectores: [
         {
-          id: "2.1",
+          id: "-",
           nombre: "Obstetricia / Ecografías",
           areas: [
             [729, 547, 220, 73]
           ]
         },
         {
-          id: "2.2",
+          id: "-",
           nombre: "Cuidados especiales",
           areas: [
             [729, 642, 219, 75]
@@ -416,28 +416,28 @@ const pisos = {
       nombre: "Internaciones",
       subsectores: [
         {
-          id: "3.1",
+          id: "-",
           nombre: "Pediatría",
           areas: [
             [325, 563, 228, 146]
           ]
         },
         {
-          id: "3.2",
+          id: "-",
           nombre: "Ginecología",
           areas: [
             [207, 737, 106, 391]
           ]
         },
         {
-          id: "3.3",
+          id: "-",
           nombre: "Conjunta",
           areas: [
             [219, 116, 110, 450]
           ]
         },
         {
-          id: "3.4",
+          id: "-",
           nombre: "Neonatología",
           areas: [
             [945, 116, 110, 450]
@@ -471,68 +471,68 @@ const pisos = {
      MANTIENE LOS SECTORES ACTUALES
   =============================== */
 
-  "PB":{
+  "PB": {
+  imagen: "./planta-baja.png",
+  ancho: 1254,
+  alto: 1254,
 
-    imagen:"./planta-baja.png",
-    ancho:1122,
-    alto:1402,
+  sectores: [
+    {
+      id: "1",
+      nombre: "Confirmación de Tokens",
+      areas: [
+        [520, 565, 205, 82]
+      ]
+    },
 
-    sectores:[
+    {
+      id: "2",
+      nombre: "Consultorios",
+      subsectores: [
+        {
+          id: "-",
+          nombre: "Pediatría / Neonatología",
+          areas: [
+            [918, 555, 78, 430]
+          ]
+        },
+        {
+          id: "-",
+          nombre: "Obstetricia / Ginecología",
+          areas: [
+            [1016, 555, 78, 430]
+          ]
+        }
+      ]
+    },
 
-      {
-        id:"1",
-        nombre:"Pediatría y Neonatología",
-        areas:[
-          [790,820,68,340]
-        ]
-      },
+    {
+      id: "3",
+      nombre: "Laboratorio",
+      areas: [
+        [250, 540, 170, 78]
+      ]
+    },
 
-      {
-        id:"2",
-        nombre:"Obstetricia / Ginecología",
-        areas:[
-          [898,820,65,340]
-        ]
-      },
+    {
+      id: "4",
+      nombre: "Mesón de turnos",
+      areas: [
+        [915, 520, 118, 78]
+      ]
+    },
 
-      {
-        id:"3",
-        nombre:"Tokens de confirmación",
-        areas:[
-          [470,728,153,62]
-        ]
-      },
-
-      {
-        id:"4",
-        nombre:"Laboratorio",
-        areas:[
-          [113,622,140,67]
-        ]
-      },
-
-      {
-        id:"5",
-        nombre:"Turnos",
-        areas:[
-          [875,622,77,67]
-        ]
-      },
-
-      {
-        id:"6",
-        nombre:"Sector de acceso",
-        areas:[
-          [47,650,59,150],
-          [475,792,151,70],
-          [969,650,60,150]
-        ]
-      }
-
-    ]
-  }
-
-};
+    {
+      id: "5",
+      nombre: "Sector de acceso",
+      areas: [
+        [148, 505, 63, 190],
+        [523, 650, 202, 76],
+        [1095, 505, 63, 190]
+      ]
+    }
+  ]
+}
 
 /* =====================================
    ELEMENTOS
