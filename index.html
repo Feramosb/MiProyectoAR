@@ -12,6 +12,11 @@
 <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
 
 <style>
+
+/* =====================================
+   ESTILOS GENERALES
+===================================== */
+
 * {
   box-sizing: border-box;
 }
@@ -25,7 +30,9 @@ html, body {
   background: transparent !important;
 }
 
-/* CÁMARA Y REALIDAD AUMENTADA */
+/* =====================================
+   CAMARA Y REALIDAD AUMENTADA
+===================================== */
 
 a-scene {
   position: fixed !important;
@@ -40,7 +47,9 @@ a-scene canvas.a-canvas {
   background: transparent !important;
 }
 
-/* MENSAJE SUPERIOR */
+/* =====================================
+   MENSAJE SUPERIOR
+===================================== */
 
 #mensaje {
   position: fixed;
@@ -58,7 +67,9 @@ a-scene canvas.a-canvas {
   pointer-events: none;
 }
 
-/* BOTÓN FIJAR */
+/* =====================================
+   BOTON FIJAR EN PANTALLA
+===================================== */
 
 #fijar {
   position: fixed;
@@ -67,26 +78,35 @@ a-scene canvas.a-canvas {
   left: 50%;
   transform: translateX(-50%);
   display: none;
-  background: #118f58;
-  border: 1px solid #6ef0aa;
+
+  background: #7921B5;
+  border: 1px solid #E879FF;
   color: white;
+
   padding: 15px 22px;
   border-radius: 30px;
   white-space: nowrap;
   font-size: 16px;
   font-weight: bold;
-  box-shadow: 0 4px 16px #0008;
+
+  box-shadow:
+    0 0 10px rgba(191,0,255,.45),
+    0 4px 16px #0008;
 }
 
-/* VISOR INTERACTIVO */
+/* =====================================
+   VISOR INTERACTIVO
+===================================== */
 
 #visor {
   position: fixed;
   inset: 70px 0 225px;
   z-index: 30;
   display: none;
+
   align-items: center;
   justify-content: center;
+
   overflow: hidden;
   touch-action: none;
   perspective: 900px;
@@ -97,6 +117,7 @@ a-scene canvas.a-canvas {
   width: min(90vw,55vh);
   aspect-ratio: 1 / 1;
   flex: none;
+
   transform-style: preserve-3d;
   transform-origin: center;
   will-change: transform;
@@ -108,12 +129,15 @@ a-scene canvas.a-canvas {
   width: 100%;
   height: 100%;
   object-fit: fill;
+
   pointer-events: none;
   user-select: none;
   -webkit-user-drag: none;
 }
 
-/* MARCADORES VERDES */
+/* =====================================
+   MARCADORES VIOLETA NEON
+===================================== */
 
 #capas {
   position: absolute;
@@ -125,13 +149,20 @@ a-scene canvas.a-canvas {
 }
 
 .resaltado {
-  fill: #00e66b;
-  fill-opacity: 0.42;
-  stroke: #00a84f;
-  stroke-width: 3;
+  fill: #A020F0;
+  fill-opacity: 0.48;
+
+  stroke: #E879FF;
+  stroke-width: 4;
+
+  filter:
+    drop-shadow(0 0 5px #BF00FF)
+    drop-shadow(0 0 12px #A020F0);
 }
 
-/* MENÚ INFERIOR */
+/* =====================================
+   MENU INFERIOR
+===================================== */
 
 #panel {
   position: fixed;
@@ -140,10 +171,13 @@ a-scene canvas.a-canvas {
   width: 100%;
   z-index: 65;
   display: none;
+
   background: rgba(14,29,43,.96);
   color: white;
+
   padding: 12px 12px
     max(14px,env(safe-area-inset-bottom));
+
   border-radius: 17px 17px 0 0;
   max-height: 49vh;
   overflow-y: auto;
@@ -167,18 +201,27 @@ button {
   font-family: inherit;
   touch-action: manipulation;
   cursor: pointer;
+
   border-radius: 10px;
   border: 1px solid #5b7681;
+
   color: white;
   background: #284357;
+
   padding: 10px 6px;
   font-size: 12px;
 }
 
+/* BOTONES ACTIVOS VIOLETA */
+
 button.activo {
-  background: #148958;
-  border-color: #88f9b3;
+  background: #7921B5;
+  border-color: #E879FF;
+  color: white;
   font-weight: bold;
+
+  box-shadow:
+    0 0 10px rgba(191,0,255,.45);
 }
 
 #acciones button {
@@ -192,7 +235,9 @@ button.activo {
   margin: 10px 0;
 }
 
-/* SECTORES */
+/* =====================================
+   SECTORES PRINCIPALES
+===================================== */
 
 #sectores {
   display: flex;
@@ -205,8 +250,13 @@ button.activo {
   text-align: left;
   font-size: 13px;
   padding: 11px 13px;
-  border-left: 5px solid #00c967;
+
+  border-left: 5px solid #BF00FF;
 }
+
+/* =====================================
+   SUBSECTORES
+===================================== */
 
 .subsectores {
   display: none;
@@ -222,47 +272,60 @@ button.activo {
 .boton-subsector {
   font-size: 12px;
   padding: 10px 7px;
-  border-left: 4px solid #00c967;
+
+  border-left: 4px solid #BF00FF;
   background: #334958;
 }
 
+/* NOMBRE DEL SECTOR SELECCIONADO */
+
 #seleccion {
   text-align: center;
-  color: #a9f3c9;
+  color: #E9B3FF;
   font-size: 12px;
   min-height: 17px;
   margin: 8px 0 2px;
 }
 
-/* OCULTAR SCANNER DESPUÉS DE FIJAR */
+/* OCULTAR SCANNER AL FIJAR */
 
 body.fijado .mindar-ui-scanning {
   display: none !important;
 }
+
 </style>
 </head>
 
 <body>
 
-<!-- MENSAJE INICIAL -->
+<!-- =====================================
+     MENSAJE INICIAL
+===================================== -->
+
 <div id="mensaje">
   Escaneá la lámina para visualizar el plano
   en realidad aumentada.
 </div>
 
-<!-- BOTÓN FIJAR -->
+<!-- =====================================
+     BOTON FIJAR
+===================================== -->
+
 <button id="fijar" type="button">
   📌 Fijar en pantalla
 </button>
 
-<!-- PLANO FIJO INTERACTIVO -->
+<!-- =====================================
+     PLANO INTERACTIVO
+===================================== -->
+
 <div id="visor">
   <div id="modelo">
 
     <img
       id="planta"
       src="./planta-4piso.png"
-      alt="Plano del hospital"
+      alt="Plano del Hospital Fernández"
       draggable="false">
 
     <svg
@@ -274,7 +337,10 @@ body.fijado .mindar-ui-scanning {
   </div>
 </div>
 
-<!-- MENÚ -->
+<!-- =====================================
+     MENU DE PISOS Y SECTORES
+===================================== -->
+
 <div id="panel">
 
   <div id="titulo">
@@ -282,6 +348,7 @@ body.fijado .mindar-ui-scanning {
   </div>
 
   <div id="pisos">
+
     <button type="button" data-piso="PB">
       Planta Baja
     </button>
@@ -289,6 +356,7 @@ body.fijado .mindar-ui-scanning {
     <button type="button" data-piso="4">
       4.º Piso
     </button>
+
   </div>
 
   <div id="subtitulo">
@@ -300,6 +368,7 @@ body.fijado .mindar-ui-scanning {
   <div id="seleccion"></div>
 
   <div id="acciones">
+
     <button type="button" id="limpiar">
       Limpiar sector
     </button>
@@ -307,11 +376,15 @@ body.fijado .mindar-ui-scanning {
     <button type="button" id="reiniciar">
       ↺ Reiniciar posición
     </button>
+
   </div>
 
 </div>
 
-<!-- ESCENA AR -->
+<!-- =====================================
+     ESCENA REALIDAD AUMENTADA
+===================================== -->
+
 <a-scene
   mindar-image="
     imageTargetSrc: ./targets.mind;
@@ -327,10 +400,12 @@ body.fijado .mindar-ui-scanning {
   device-orientation-permission-ui="enabled: false">
 
   <a-assets>
+
     <img
       id="ar-plano-img"
       src="./planta-4piso.png"
       crossorigin="anonymous">
+
   </a-assets>
 
   <a-camera
@@ -347,11 +422,13 @@ body.fijado .mindar-ui-scanning {
       position="0 0 0.3"
       width="1"
       height="1"
-      material="src: #ar-plano-img;
-                shader: flat;
-                transparent: true;
-                side: double;
-                depthWrite: false">
+      material="
+        src: #ar-plano-img;
+        shader: flat;
+        transparent: true;
+        side: double;
+        depthWrite: false;
+      ">
     </a-plane>
 
   </a-entity>
@@ -360,19 +437,19 @@ body.fijado .mindar-ui-scanning {
 
 <script>
 
-/* ==================================
-   CONFIGURACIÓN DE LOS DOS PISOS
-
-   Coordenadas: imagen 1254 x 1254
-================================== */
+/* =====================================
+   CONFIGURACION DE LOS DOS PISOS
+   COORDENADAS: 1254 x 1254
+===================================== */
 
 const pisos = {
 
-  /* ==================================
+  /* =====================================
      4.º PISO
-  ================================== */
+  ===================================== */
 
   "4": {
+
     imagen: "./planta-4piso.png",
     ancho: 1254,
     alto: 1254,
@@ -474,83 +551,86 @@ const pisos = {
     ]
   },
 
-  /* ==================================
+  /* =====================================
      PLANTA BAJA
-     NUEVA ORGANIZACIÓN
-  ================================== */
+     COORDENADAS CORREGIDAS
+  ===================================== */
 
-  
+  "PB": {
 
-"PB": {
-  imagen: "./planta-baja.png",
-  ancho: 1254,
-  alto: 1254,
+    imagen: "./planta-baja.png",
+    ancho: 1254,
+    alto: 1254,
 
-  sectores: [
-    {
-      id: "1",
-      nombre: "Confirmación de Tokens",
-      areas: [
-        [545, 576, 146, 66]
-      ]
-    },
+    sectores: [
 
-    {
-      id: "2",
-      nombre: "Consultorios",
-      subsectores: [
-        {
-          id: "2.1",
-          nombre: "Pediatría / Neonatología",
-          areas: [
-            [859, 671, 62, 445]
-          ]
-        },
-        {
-          id: "2.2",
-          nombre: "Obstetricia / Ginecología",
-          areas: [
-            [973, 709, 62, 445]
-          ]
-        }
-      ]
-    },
+      {
+        id: "1",
+        nombre: "Confirmación de Tokens",
+        areas: [
+          [545,576,146,66]
+        ]
+      },
 
-    {
-      id: "3",
-      nombre: "Laboratorio",
-      areas: [
-        [203, 561, 125, 43]
-      ]
-    },
+      {
+        id: "2",
+        nombre: "Consultorios",
 
-    {
-      id: "4",
-      nombre: "Mesón de turnos",
-      areas: [
-        [958, 566, 49, 40]
-      ]
-    },
+        subsectores: [
 
-    {
-      id: "5",
-      nombre: "Sector de acceso",
-      areas: [
-        [127, 582, 82, 129],
-        [537, 645, 161, 147],
-        [1039, 581, 86, 128]
-      ]
-    }
-  ]
-}
+          {
+            id: "2.1",
+            nombre: "Pediatría / Neonatología",
+            areas: [
+              [859,671,62,445]
+            ]
+          },
 
+          {
+            id: "2.2",
+            nombre: "Obstetricia / Ginecología",
+            areas: [
+              [973,709,62,445]
+            ]
+          }
 
+        ]
+      },
+
+      {
+        id: "3",
+        nombre: "Laboratorio",
+        areas: [
+          [203,561,125,43]
+        ]
+      },
+
+      {
+        id: "4",
+        nombre: "Mesón de turnos",
+        areas: [
+          [958,566,49,40]
+        ]
+      },
+
+      {
+        id: "5",
+        nombre: "Sector de acceso",
+        areas: [
+          [127,582,82,129],
+          [537,645,161,147],
+          [1039,581,86,128]
+        ]
+      }
+
+    ]
+  }
 
 };
 
-/* ==================================
+/* =====================================
    ELEMENTOS
-================================== */
+===================================== */
 
 const $ = id =>
   document.getElementById(id);
@@ -563,9 +643,9 @@ const panel = $("panel");
 const mensaje = $("mensaje");
 const fijar = $("fijar");
 
-/* ==================================
+/* =====================================
    ESTADO GENERAL
-================================== */
+===================================== */
 
 let detectado = false;
 let fijado = false;
@@ -578,7 +658,10 @@ let rotY = 0;
 let desplazamientoX = 0;
 let desplazamientoY = 0;
 
+/* ESTADO DE GESTOS */
+
 let gesto = "";
+
 let ultimoX = 0;
 let ultimoY = 0;
 
@@ -591,12 +674,12 @@ let centroInicialY = 0;
 let desplazamientoInicialX = 0;
 let desplazamientoInicialY = 0;
 
-const limitar = (v,min,max) =>
-  Math.max(min,Math.min(max,v));
+const limitar = (valor,min,max) =>
+  Math.max(min,Math.min(max,valor));
 
-/* ==================================
-   TRANSFORMAR PLANO
-================================== */
+/* =====================================
+   ACTUALIZAR POSICION DEL PLANO
+===================================== */
 
 function actualizarVista() {
 
@@ -611,6 +694,10 @@ function actualizarVista() {
   `;
 
 }
+
+/* =====================================
+   REINICIAR POSICION
+===================================== */
 
 function reiniciar() {
 
@@ -627,9 +714,9 @@ function reiniciar() {
 
 }
 
-/* ==================================
+/* =====================================
    LIMPIAR MARCADORES
-================================== */
+===================================== */
 
 function limpiar() {
 
@@ -647,9 +734,9 @@ function limpiar() {
 
 }
 
-/* ==================================
-   DIBUJAR MARCADORES VERDES
-================================== */
+/* =====================================
+   DIBUJAR MARCADORES VIOLETA NEON
+===================================== */
 
 function dibujarAreas(areas) {
 
@@ -664,6 +751,7 @@ function dibujarAreas(areas) {
 
     rect.setAttribute("x",x);
     rect.setAttribute("y",y);
+
     rect.setAttribute("width",w);
     rect.setAttribute("height",h);
 
@@ -683,26 +771,32 @@ function dibujarAreas(areas) {
 
 }
 
-/* ==================================
+/* =====================================
    SELECCIONAR SECTOR PRINCIPAL
-================================== */
+===================================== */
 
 function seleccionarPrincipal(sector,boton) {
 
   limpiar();
 
-  /* Si es un grupo, marcar todos
-     sus subsectores */
+  /* SI TIENE AREAS PROPIAS */
+
+  if (sector.areas) {
+
+    dibujarAreas(sector.areas);
+
+  }
+
+  /* SI TIENE SUBSECTORES,
+     MARCAR TODOS LOS SERVICIOS */
 
   if (sector.subsectores) {
 
     sector.subsectores.forEach(sub => {
+
       dibujarAreas(sub.areas);
+
     });
-
-  } else {
-
-    dibujarAreas(sector.areas);
 
   }
 
@@ -713,15 +807,15 @@ function seleccionarPrincipal(sector,boton) {
 
 }
 
-/* ==================================
-   SELECCIONAR SUBSECTOR
-================================== */
+/* =====================================
+   SELECCIONAR UN SUBSECTOR
+===================================== */
 
 function seleccionarSubsector(sub,boton) {
 
   limpiar();
 
-  /* Mostrar solamente su ubicación */
+  /* MOSTRAR SOLO EL SERVICIO ELEGIDO */
 
   dibujarAreas(sub.areas);
 
@@ -732,9 +826,9 @@ function seleccionarSubsector(sub,boton) {
 
 }
 
-/* ==================================
-   CREAR MENÚ AUTOMÁTICO
-================================== */
+/* =====================================
+   CREAR MENU DINAMICO
+===================================== */
 
 function crearMenu() {
 
@@ -745,6 +839,8 @@ function crearMenu() {
   const lista = pisos[pisoActual].sectores;
 
   lista.forEach(sector => {
+
+    /* BOTON PRINCIPAL */
 
     const principal =
       document.createElement("button");
@@ -760,7 +856,7 @@ function crearMenu() {
 
     contenedor.appendChild(principal);
 
-    /* GRUPOS CON SUBSECTORES */
+    /* SECTOR CON SUBSECTORES */
 
     if (sector.subsectores) {
 
@@ -810,7 +906,7 @@ function crearMenu() {
               "abierto"
             );
 
-          /* Cerrar otros submenús */
+          /* CERRAR OTROS SUBMENUS */
 
           document.querySelectorAll(
             ".subsectores"
@@ -822,7 +918,7 @@ function crearMenu() {
 
           });
 
-          /* Abrir el seleccionado */
+          /* ABRIR SUBMENU SELECCIONADO */
 
           if (!estabaAbierto) {
 
@@ -832,8 +928,8 @@ function crearMenu() {
 
           }
 
-          /* Marcar todos los servicios
-             de este grupo */
+          /* MARCAR TODAS LAS AREAS
+             DEL SECTOR PRINCIPAL */
 
           seleccionarPrincipal(
             sector,
@@ -845,7 +941,7 @@ function crearMenu() {
 
     }
 
-    /* SECTORES DIRECTOS */
+    /* SECTOR SIN SUBSECTORES */
 
     else {
 
@@ -867,9 +963,9 @@ function crearMenu() {
 
 }
 
-/* ==================================
+/* =====================================
    CAMBIAR DE PISO
-================================== */
+===================================== */
 
 function elegirPiso(piso) {
 
@@ -879,17 +975,27 @@ function elegirPiso(piso) {
 
   const cfg = pisos[piso];
 
+  /* CAMBIAR IMAGEN */
+
   planta.src = cfg.imagen;
+
+  /* ACTUALIZAR PROPORCIONES */
 
   modelo.style.aspectRatio =
     cfg.ancho + " / " + cfg.alto;
+
+  /* ACTUALIZAR COORDENADAS SVG */
 
   capas.setAttribute(
     "viewBox",
     `0 0 ${cfg.ancho} ${cfg.alto}`
   );
 
+  /* CREAR BOTONES DE ESTE PISO */
+
   crearMenu();
+
+  /* DESTACAR PISO SELECCIONADO */
 
   document.querySelectorAll(
     "[data-piso]"
@@ -907,9 +1013,9 @@ function elegirPiso(piso) {
 
 }
 
-/* ==================================
-   RECONOCIMIENTO AR
-================================== */
+/* =====================================
+   DETECCION DE LA PLANTA EN AR
+===================================== */
 
 $("marcador").addEventListener(
   "targetFound",
@@ -927,9 +1033,9 @@ $("marcador").addEventListener(
   }
 );
 
-/* ==================================
-   FIJAR EN PANTALLA
-================================== */
+/* =====================================
+   BOTON FIJAR EN PANTALLA
+===================================== */
 
 fijar.addEventListener(
   "click",
@@ -945,19 +1051,28 @@ fijar.addEventListener(
 
     fijar.style.display = "none";
 
-    /* Ocultar plano AR */
+    /* OCULTAR EL PLANO VINCULADO
+       AL MARCADOR */
 
     $("ar-plano").setAttribute(
       "visible",
       false
     );
 
-    /* Mostrar visor y menú */
+    /* MOSTRAR VISOR INDEPENDIENTE */
 
     visor.style.display = "flex";
+
+    /* MOSTRAR MENU DE PISOS */
+
     panel.style.display = "block";
 
+    /* SELECCIONAR 4.º PISO
+       INICIALMENTE */
+
     elegirPiso("4");
+
+    /* INSTRUCCIONES DE USO */
 
     mensaje.innerHTML = `
       <strong>Plano fijado en pantalla</strong><br>
@@ -968,9 +1083,9 @@ fijar.addEventListener(
   }
 );
 
-/* ==================================
-   BOTONES DE PISOS
-================================== */
+/* =====================================
+   BOTONES DE SELECCION DE PISO
+===================================== */
 
 document.querySelectorAll(
   "[data-piso]"
@@ -989,7 +1104,9 @@ document.querySelectorAll(
 
 });
 
-/* BOTONES LIMPIAR Y REINICIAR */
+/* =====================================
+   BOTONES LIMPIAR Y REINICIAR
+===================================== */
 
 $("limpiar").addEventListener(
   "click",
@@ -1001,30 +1118,31 @@ $("reiniciar").addEventListener(
   reiniciar
 );
 
-/* ==================================
-   CÁLCULOS DE GESTOS
-================================== */
+/* =====================================
+   CALCULO DE GESTOS
+===================================== */
 
 const distancia = (a,b) =>
   Math.hypot(
-    a.clientX-b.clientX,
-    a.clientY-b.clientY
+    a.clientX - b.clientX,
+    a.clientY - b.clientY
   );
 
 const centro = (a,b) => ({
-  x:(a.clientX+b.clientX)/2,
-  y:(a.clientY+b.clientY)/2
+  x: (a.clientX + b.clientX)/2,
+  y: (a.clientY + b.clientY)/2
 });
 
-/* ==================================
-   DOS DEDOS
-================================== */
+/* =====================================
+   INICIAR GESTO CON DOS DEDOS
+===================================== */
 
 function iniciarDos(a,b) {
 
   gesto = "dos";
 
   distanciaInicial = distancia(a,b);
+
   escalaInicial = escala;
 
   const c = centro(a,b);
@@ -1040,13 +1158,15 @@ function iniciarDos(a,b) {
 
 }
 
-/* ==================================
-   TOUCH START
-================================== */
+/* =====================================
+   INICIO DE TOQUE
+===================================== */
 
 visor.addEventListener(
   "touchstart",
   e => {
+
+    /* UN DEDO */
 
     if (e.touches.length === 1) {
 
@@ -1059,6 +1179,8 @@ visor.addEventListener(
         e.touches[0].clientY;
 
     }
+
+    /* DOS DEDOS */
 
     else if (e.touches.length === 2) {
 
@@ -1073,9 +1195,9 @@ visor.addEventListener(
   {passive:true}
 );
 
-/* ==================================
-   TOUCH MOVE
-================================== */
+/* =====================================
+   MOVIMIENTO DE TOQUE
+===================================== */
 
 visor.addEventListener(
   "touchmove",
@@ -1085,7 +1207,7 @@ visor.addEventListener(
       e.preventDefault();
     }
 
-    /* UN DEDO: ROTACIÓN */
+    /* UN DEDO: ROTAR */
 
     if (
       e.touches.length === 1 &&
@@ -1127,6 +1249,8 @@ visor.addEventListener(
 
       const c = centro(a,b);
 
+      /* ZOOM */
+
       if (distanciaInicial > 0) {
 
         escala = limitar(
@@ -1139,13 +1263,17 @@ visor.addEventListener(
 
       }
 
+      /* MOVIMIENTO HORIZONTAL */
+
       desplazamientoX =
         desplazamientoInicialX +
-        c.x-centroInicialX;
+        c.x - centroInicialX;
+
+      /* MOVIMIENTO VERTICAL */
 
       desplazamientoY =
         desplazamientoInicialY +
-        c.y-centroInicialY;
+        c.y - centroInicialY;
 
       actualizarVista();
 
@@ -1155,9 +1283,9 @@ visor.addEventListener(
   {passive:false}
 );
 
-/* ==================================
-   TOUCH END
-================================== */
+/* =====================================
+   FINALIZAR TOQUE
+===================================== */
 
 visor.addEventListener(
   "touchend",
@@ -1196,13 +1324,15 @@ visor.addEventListener(
 visor.addEventListener(
   "touchcancel",
   () => {
+
     gesto = "";
+
   }
 );
 
-/* ==================================
-   CONTROLES DE MOUSE
-================================== */
+/* =====================================
+   CONTROLES CON MOUSE
+===================================== */
 
 let mouse = false;
 
@@ -1221,7 +1351,9 @@ visor.addEventListener(
 window.addEventListener(
   "mouseup",
   () => {
+
     mouse = false;
+
   }
 );
 
@@ -1253,9 +1385,9 @@ visor.addEventListener(
   }
 );
 
-/* ==================================
-   INICIALIZACIÓN
-================================== */
+/* =====================================
+   INICIALIZAR EL PROYECTO
+===================================== */
 
 elegirPiso("4");
 
